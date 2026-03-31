@@ -10,6 +10,11 @@ public class Event
 
     public void Update(string title, string? description, DateTime startAt, DateTime endAt)
     {
+        if(endAt < startAt)
+        {
+            throw new ArgumentException("EndAt must be later than StartAt");
+        }
+
         Title = title;
         Description = description;
         StartAt = startAt;

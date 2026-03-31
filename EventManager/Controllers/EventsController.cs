@@ -65,6 +65,10 @@ public class EventsController(IEventService eventService) : ControllerBase
         {
             return NotFound(new ApiResult { Message = ex.Message });
         }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ApiResult { Message = ex.Message });
+        }
     }
 
     [HttpDelete("{id}")]

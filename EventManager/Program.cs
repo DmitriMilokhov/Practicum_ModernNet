@@ -1,3 +1,5 @@
+using EventManager.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();
 
@@ -12,6 +14,7 @@ if(isDevelopment)
 }
 
 //services
+builder.Services.AddAppServices();
 builder.Services.AddSwaggerGen();
 
 //after build

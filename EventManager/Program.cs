@@ -15,6 +15,7 @@ if(isDevelopment)
 
 //services
 builder.Services.AddAppServices();
+builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 
 //after build

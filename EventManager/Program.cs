@@ -1,3 +1,5 @@
+using EventManager.Infrastructure;
+using EventManager.Middleware;
 using EventManager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,8 +17,9 @@ if(isDevelopment)
 
 //services
 builder.Services.AddAppServices();
-builder.Services.AddControllers();
-builder.Services.AddSwaggerGen();
+builder.Services.AddInfrastructure();
+
+builder.Logging.AddConsole();
 
 //after build
 var app = builder.Build();
@@ -28,6 +31,7 @@ if(isDevelopment)
     app.UseSwaggerUI();
 }
 
+app.UseRequestLogging();
 app.UseHttpsRedirection();
 app.UseRouting();
 

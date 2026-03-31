@@ -1,11 +1,10 @@
 ﻿using EventManager.Infrastructure;
 using EventManager.Interfaces;
 using EventManager.Models;
-using Microsoft.Extensions.Logging;
 
 namespace EventManager.Services;
 
-public class EventService : IEventService
+public class EventService(ILogger<EventService> logger) : IEventService
 {
     private static readonly List<Event> _events = [];
 
@@ -48,7 +47,9 @@ public class EventService : IEventService
 
         if (result == null)
         {
-            throw new NotFoundException($"Event {id} is not found");
+            var errorMsg = $"Event {id} is not found";
+            logger.LogError(errorMsg);
+            throw new NotFoundException(errorMsg);
         }
 
         return result;

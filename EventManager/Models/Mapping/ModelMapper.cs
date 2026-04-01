@@ -4,7 +4,7 @@ public static class EventMapper
 {
     public static Event ToEntity(this EventDto model)
     {
-        return new Event(Guid.NewGuid(), model.Title, model.Description, model.StartAt, model.EndAt);
+        return new Event(Guid.NewGuid(), model.Title, model.Description, model.StartAt!.Value, model.EndAt!.Value);
     }
 
     public static FullEventDto ToDto(this Event model)

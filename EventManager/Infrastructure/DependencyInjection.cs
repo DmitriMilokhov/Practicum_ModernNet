@@ -17,7 +17,7 @@ public static class DependencyInjection
                         kv => kv.Key,
                         kv => kv.Value!.Errors.Select(e => e.ErrorMessage));
 
-                var errorMsg = $"Validation issues: {string.Join(",", errors.Select(kv => $"{kv.Key}: {kv.Value}"))}";
+                var errorMsg = $"Validation issues. {string.Join(", ", errors.Select(kv => $"{kv.Key}: {string.Join(",", kv.Value)}"))}";
                 var result = new ApiResult {  Message = errorMsg };
 
                 return new BadRequestObjectResult(result);

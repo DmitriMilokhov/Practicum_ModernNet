@@ -12,16 +12,26 @@ public class Event
 
     public Event(Guid id, string title, string? description, DateTime startAt, DateTime endAt)
     {
-        SetValues(title, description, startAt, endAt);
+        Validate(title, startAt, endAt);
+
         Id = id;
+        Title = title;
+        Description = description;
+        StartAt = startAt;
+        EndAt = endAt;
     }
 
     public void Update(string title, string? description, DateTime startAt, DateTime endAt)
     {
-        SetValues(title, description, startAt, endAt);
+        Validate(title, startAt, endAt);
+
+        Title = title;
+        Description = description;
+        StartAt = startAt;
+        EndAt = endAt;
     }
 
-    private void SetValues(string title, string? description, DateTime startAt, DateTime endAt)
+    private void Validate(string title, DateTime startAt, DateTime endAt)
     {
         if(string.IsNullOrWhiteSpace(title))
         {
@@ -32,10 +42,5 @@ public class Event
         {
             throw new ValidationException("EndAt must be later than StartAt");
         }
-
-        Title = title;
-        Description = description;
-        StartAt = startAt;
-        EndAt = endAt;
     }
 }

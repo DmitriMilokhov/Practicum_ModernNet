@@ -6,7 +6,7 @@ namespace EventManager.Services;
 
 public class EventService() : IEventService
 {
-    private static readonly List<Event> _events = [];
+    private readonly List<Event> _events = [];
 
     public IReadOnlyList<FullEventDto> GetAllEvents()
     {
@@ -38,7 +38,7 @@ public class EventService() : IEventService
         //TODO: maybe to return updated data (FullEventDto)?
 
         var result = TryGetEvent(eventId);
-        result.Update(data.Title, data.Description, data.StartAt, data.EndAt);
+        result.Update(data.Title, data.Description, data.StartAt!.Value, data.EndAt!.Value);
     }
 
     private Event TryGetEvent(Guid id)

@@ -4,7 +4,7 @@ using EventManager.Models;
 
 namespace EventManager.Services;
 
-public class EventService(ILogger<EventService> logger) : IEventService
+public class EventService() : IEventService
 {
     private static readonly List<Event> _events = [];
 
@@ -47,9 +47,7 @@ public class EventService(ILogger<EventService> logger) : IEventService
 
         if (result == null)
         {
-            var errorMsg = $"Event {id} is not found";
-            logger.LogError(errorMsg);
-            throw new NotFoundException(errorMsg);
+            throw new NotFoundException($"Event {id} is not found");
         }
 
         return result;

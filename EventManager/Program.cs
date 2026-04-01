@@ -24,8 +24,9 @@ builder.Logging.AddConsole();
 //after build
 var app = builder.Build();
 
+app.UseExceptionHandling();
 
-if(isDevelopment)
+if (isDevelopment)
 {
     app.UseSwagger();
     app.UseSwaggerUI();

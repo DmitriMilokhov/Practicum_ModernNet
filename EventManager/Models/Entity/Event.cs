@@ -1,4 +1,6 @@
-﻿namespace EventManager.Models;
+using System.ComponentModel.DataAnnotations;
+
+namespace EventManager.Models;
 
 public class Event
 {
@@ -8,7 +10,6 @@ public class Event
     public DateTime StartAt { get; private set; }
     public DateTime EndAt { get; private set; }
 
-    public Event() { }
     public Event(Guid id, string title, string? description, DateTime startAt, DateTime endAt)
     {
         SetValues(title, description, startAt, endAt);
@@ -22,14 +23,14 @@ public class Event
 
     private void SetValues(string title, string? description, DateTime startAt, DateTime endAt)
     {
-        if(string.IsNullOrEmpty(title))
+        if(string.IsNullOrWhiteSpace(title))
         {
-            throw new ArgumentException("Title is required");
+            throw new ValidationException("Title is required");
         }
 
         if (endAt <= startAt)
         {
-            throw new ArgumentException("EndAt must be later than StartAt");
+            throw new ValidationException("EndAt must be later than StartAt");
         }
 
         Title = title;

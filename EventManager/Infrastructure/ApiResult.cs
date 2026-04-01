@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace EventManager.Infrastructure;
+﻿namespace EventManager.Infrastructure;
 
 /// <summary>
 ///  Base class with result params
@@ -8,9 +6,9 @@ namespace EventManager.Infrastructure;
 public class ApiBaseResult
 {
     /// <summary>
-    /// Response Date & Time
+    /// Response Creation DateTime
     /// </summary>
-    public DateTime DateTime { get; set; } = DateTime.UtcNow;
+    public DateTime Created { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// Additional information

@@ -1,4 +1,4 @@
-﻿using EventManager.Infrastructure;
+﻿using EventManager.Infrastructure.Exceptions;
 using EventManager.Interfaces;
 using EventManager.Models;
 
@@ -47,7 +47,7 @@ public class EventService() : IEventService
 
         if (result == null)
         {
-            throw new NotFoundException($"Event {id} is not found");
+            throw new EventNotFoundException(id);
         }
 
         return result;

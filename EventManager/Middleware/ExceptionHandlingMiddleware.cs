@@ -1,6 +1,7 @@
 using EventManager.Infrastructure;
+using EventManager.Infrastructure.Exceptions;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
 
 namespace EventManager.Middleware
 {
@@ -14,49 +15,53 @@ namespace EventManager.Middleware
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Exception occured!");
+                logger.LogError(
+                    ex,
+                    "Exception occured! Method = {Method}, Path = {Path}, RequestId = {RequestId}",
+                    context.Request.Method,
+                    context.Request.Path,
+                    context.Request.Headers["x-request-id"]);
+
                 await HandleExceptionAsync(context, ex);
             }
         }
 
         private static async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
-            context.Response.ContentType = "application/json";
-
-            var response = ex switch
+            if (context.Response.HasStarted)
             {
-                NotFoundException nf => new
-                {
-                    status = StatusCodes.Status404NotFound,
-                    body = new ApiResult
-                    {
-                        Message = nf.Message
-                    }
-                },
+                return;
+            }
 
-                ValidationException ve => new
+            var apiErrorResponse = new ApiErrorResult
+            {
+                Message = "Exception occured. See Error Details",
+                ErrorDeatails = ex switch
                 {
-                    status = StatusCodes.Status400BadRequest,
-                    body = new ApiResult
+                    NotFoundException nf => new ProblemDetails
                     {
-                        Message = ve.Message
-                    }
-                },
+                        Detail = nf.Message,
+                        Status = StatusCodes.Status404NotFound,                       
+                    },
 
-                _ => new
-                {
-                    status = StatusCodes.Status500InternalServerError,
-                    body = new ApiResult
+                    ValidationException ve => new ProblemDetails
                     {
-                        Message = "Internal server error"
+                        Detail = ve.Message,
+                        Status = StatusCodes.Status400BadRequest,
+                    },
+                    
+                    _ => new ProblemDetails
+                    {
+                        Detail = "Internal server error",
+                        Status = StatusCodes.Status500InternalServerError,
                     }
                 }
             };
 
-            context.Response.StatusCode = response.status;
-            var json = JsonSerializer.Serialize(response.body);
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)apiErrorResponse.ErrorDeatails.Status!;
 
-            await context.Response.WriteAsync(json);
+            await context.Response.WriteAsJsonAsync(apiErrorResponse);
         }
     }
 }

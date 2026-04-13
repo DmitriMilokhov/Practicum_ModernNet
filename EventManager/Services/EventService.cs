@@ -1,56 +1,40 @@
-﻿using EventManager.Infrastructure.Exceptions;
-using EventManager.Interfaces;
+﻿using EventManager.Interfaces;
+using EventManager.Interfaces.IRepositories;
 using EventManager.Models;
 
 namespace EventManager.Services;
 
-public class EventService() : IEventService
+public class EventService(IEventsRepository repository) : IEventService
 {
-    private readonly List<Event> _events = [];
-
     public IReadOnlyList<FullEventDto> GetAllEvents()
     {
-        return _events.Select(e => e.ToDto()).ToList().AsReadOnly();
+        return repository.GetAll()
+                         .Select(e => e.ToDto())
+                         .ToList()
+                         .AsReadOnly();
     }
 
     public FullEventDto GetEvent(Guid id)
     {
-        var result = TryGetEvent(id);
-        return result.ToDto();
+        return repository.Get(id).ToDto();
     }
 
     public FullEventDto AddEvent(EventDto eventModel)
     {
         var eventEntity = eventModel.ToEntity();
-        _events.Add(eventEntity);
+        repository.Add(eventEntity);
 
         return eventEntity.ToDto();
     }
 
     public void DeleteEvent(Guid eventId)
     {
-        var result = TryGetEvent(eventId);
-        _events.Remove(result);
+        repository.Delete(eventId);
     }
 
     public void UpdateEvent(Guid eventId, EventDto data)
     {
-        //TODO: maybe to return updated data (FullEventDto)?
-
-        var result = TryGetEvent(eventId);
-        result.Update(data.Title, data.Description, data.StartAt!.Value, data.EndAt!.Value);
-    }
-
-    private Event TryGetEvent(Guid id)
-    {
-        var result = _events.FirstOrDefault(e => e.Id == id);
-
-        if (result == null)
-        {
-            throw new EventNotFoundException(id);
-        }
-
-        return result;
+        repository.Update(eventId, data.ToEntity());
     }
 
 }

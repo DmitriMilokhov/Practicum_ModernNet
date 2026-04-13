@@ -1,5 +1,6 @@
 using EventManager.Infrastructure;
 using EventManager.Middleware;
+using EventManager.Repository;
 using EventManager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,7 @@ if(isDevelopment)
 }
 
 //services
+builder.Services.AddAppRepositories();
 builder.Services.AddAppServices();
 builder.Services.AddInfrastructure();
 

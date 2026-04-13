@@ -6,7 +6,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddAppServices(this IServiceCollection services) 
     {
-        services.AddSingleton<IEventService, EventService>();
+        services.AddScoped<IEventService, EventService>();
 
         return services;
     }

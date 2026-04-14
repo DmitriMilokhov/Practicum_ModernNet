@@ -1,17 +1,19 @@
 ﻿using EventManager.Interfaces;
 using EventManager.Interfaces.IRepositories;
 using EventManager.Models;
+using EventManager.Models.Filters;
 
 namespace EventManager.Services;
 
 public class EventService(IEventsRepository repository) : IEventService
 {
-    public IReadOnlyList<FullEventDto> GetAllEvents()
+    public List<FullEventDto> GetEvents(EventFilter filter)
     {
-        return repository.GetAll()
-                         .Select(e => e.ToDto())
-                         .ToList()
-                         .AsReadOnly();
+        return repository
+            .GetAll()
+            .ApplyFilter(filter)
+            .Select(e => e.ToDto())
+            .ToList();
     }
 
     public FullEventDto GetEvent(Guid id)

@@ -1,6 +1,7 @@
 ﻿using EventManager.Infrastructure;
 using EventManager.Interfaces;
 using EventManager.Models;
+using EventManager.Models.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventManager.Controllers;
@@ -11,17 +12,23 @@ public class EventsController(IEventService eventService) : ControllerBase
 {
 
     /// <summary>
-    /// Get all events
+    /// Get events
     /// </summary>
+    /// <param name="filter">
+    /// Optional query filters:
+    /// - Title: filters by title (case-insensitive, contains)
+    /// - From: start date (inclusive)
+    /// - To: end date (inclusive)
+    /// </param>
     /// <response code="200"> Returns JSON ApiBaseResult with events data. 
     /// If there are no any - empty list with corresponding message</response>
     [ProducesResponseType(typeof(ApiResult<IReadOnlyCollection<FullEventDto>>), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpGet]
-    public ActionResult<ApiResult<IReadOnlyCollection<FullEventDto>>> GetAll()
+    public ActionResult<ApiResult<IReadOnlyCollection<FullEventDto>>> GetAll([FromQuery]EventFilter filter)
     {
-        var data = eventService.GetAllEvents();
-        var msg = data.Count > 0 ? "Getting all events" : "There are no events";
+        var data = eventService.GetEvents(filter);
+        var msg = data.Count > 0 ? "Getting events" : "There are no events";
 
         return Ok(new ApiResult<IReadOnlyCollection<FullEventDto>>
         {

@@ -5,7 +5,7 @@ using EventManager.Models.Filters;
 
 namespace EventManager.Services;
 
-public class EventService(IEventsRepository repository) : IEventService
+public class EventService(IEventRepository repository) : IEventService
 {
     public PagedResponse<FullEventDto> GetEvents(EventFilter filter)
     {

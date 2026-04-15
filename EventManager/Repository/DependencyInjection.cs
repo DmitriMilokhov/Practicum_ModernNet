@@ -6,7 +6,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddAppRepositories(this IServiceCollection services) 
     {
-        services.AddSingleton<IEventsRepository, InMemoryEventsRepository>();
+        services.AddSingleton<IEventRepository, InMemoryEventRepository>();
 
         return services;
     }

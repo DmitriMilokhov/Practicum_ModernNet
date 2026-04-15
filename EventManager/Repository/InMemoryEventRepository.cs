@@ -4,7 +4,7 @@ using EventManager.Models;
 
 namespace EventManager.Repository;
 
-public class InMemoryEventsRepository : IEventsRepository
+public class InMemoryEventRepository : IEventRepository
 {
     private readonly List<Event> _events = [];
 

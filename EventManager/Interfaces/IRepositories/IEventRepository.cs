@@ -2,7 +2,7 @@
 
 namespace EventManager.Interfaces.IRepositories;
 
-public interface IEventsRepository
+public interface IEventRepository
 {
     IReadOnlyList<Event> GetAll();
     Event Get(Guid id);

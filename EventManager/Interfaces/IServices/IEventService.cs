@@ -5,7 +5,7 @@ namespace EventManager.Interfaces;
 
 public interface IEventService
 {
-    List<FullEventDto> GetEvents(EventFilter filter);
+    PagedResponse<FullEventDto> GetEvents(EventFilter filter);
     FullEventDto GetEvent(Guid id);
     FullEventDto AddEvent(EventDto eventModel);
     void UpdateEvent(Guid eventId, EventDto data);

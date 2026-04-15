@@ -2,40 +2,18 @@
 
 public class EventFilter
 {
-    /// <summary>
-    /// Filter by title (case-insensitive, substring match)
-    /// </summary>
+    /// <summary>Filter by title (case-insensitive, substring match)</summary>
     public string? Title { get; init; }
 
-    /// <summary>
-    /// Start date (inclusive). Format: yyyy-MM-dd 
-    /// </summary>
+    /// <summary>Start date (inclusive). Format: yyyy-MM-dd</summary>
     public DateTime? From { get; init; }
 
-    /// <summary>
-    /// End date (inclusive). Format: yyyy-MM-dd 
+    /// <summary>End date (inclusive). Format: yyyy-MM-dd </summary>
     public DateTime? To { get; init; }
-}
 
-public static class EventFilterExtension
-{
-    public static IEnumerable<Event> ApplyFilter(this IEnumerable<Event> events, EventFilter filter)
-    {
-        if (!string.IsNullOrWhiteSpace(filter.Title))
-        {
-            events = events.Where(e => e.Title.Contains(filter.Title, StringComparison.OrdinalIgnoreCase));
-        }
+    /// <summary>Page number (starting from 1)</summary>
+    public int Page { get; init; } = 1;
 
-        if (filter.From.HasValue)
-        {
-            events = events.Where(e => e.StartAt >= filter.From.Value);
-        }
-
-        if (filter.To.HasValue)
-        {
-            events = events.Where(e => e.EndAt <= filter.To.Value);
-        }
-
-        return events;
-    }
+    /// <summary>Items per page (10 by default)</summary>
+    public int PageSize { get; init; } = 10;
 }

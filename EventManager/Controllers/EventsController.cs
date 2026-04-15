@@ -20,17 +20,17 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// - From: start date (inclusive)
     /// - To: end date (inclusive)
     /// </param>
-    /// <response code="200"> Returns JSON ApiBaseResult with events data. 
+    /// <response code="200"> Returns JSON ApiResult with events data. 
     /// If there are no any - empty list with corresponding message</response>
-    [ProducesResponseType(typeof(ApiResult<IReadOnlyCollection<FullEventDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResult<PagedResponse<FullEventDto>>), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpGet]
-    public ActionResult<ApiResult<IReadOnlyCollection<FullEventDto>>> GetAll([FromQuery]EventFilter filter)
+    public ActionResult<ApiResult<PagedResponse<FullEventDto>>> GetAll([FromQuery]EventFilter filter)
     {
         var data = eventService.GetEvents(filter);
-        var msg = data.Count > 0 ? "Getting events" : "There are no events";
+        var msg = data.TotalItems > 0 ? "Getting events" : "There are no events";
 
-        return Ok(new ApiResult<IReadOnlyCollection<FullEventDto>>
+        return Ok(new ApiResult<PagedResponse<FullEventDto>>
         {
             Data = data,
             Message = msg
@@ -42,10 +42,10 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// Get an event by its Guid
     /// </summary>
     /// <param name="id">Guid - id of an event to search</param>
-    /// <response code="200"> Returns JSON ApiBaseResult with an event data. </response>
-    /// <response code="404">Returns JSON ApiBaseResult with corresponding message if event not found</response>
+    /// <response code="200"> Returns JSON ApiResult with an event data. </response>
+    /// <response code="404">Returns JSON ApiErrorResult with corresponding message if event not found</response>
     [ProducesResponseType(typeof(ApiResult<FullEventDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorResult), StatusCodes.Status404NotFound)]
     [Produces("application/json")]
     [HttpGet("{id}")]
     public ActionResult<ApiResult<FullEventDto>> Get(Guid id)
@@ -62,11 +62,11 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// Create a new event
     /// </summary>
     /// <param name="eventDto">Data required to create an event</param>
-    /// <response code="201">Returns JSON ApiBaseResult with created event data</response>
-    /// <response code="400">Returns JSON ApiBaseResult with with corresponding message if there are validation errors</response>
+    /// <response code="201">Returns JSON ApiResult with created event data</response>
+    /// <response code="400">Returns JSON ApiErrorResult with corresponding message if there are validation errors</response>
     [HttpPost]
     [ProducesResponseType(typeof(ApiResult<FullEventDto>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResult), StatusCodes.Status400BadRequest)]
     [Produces("application/json")]
     public ActionResult<ApiResult<FullEventDto>> Create([FromBody] EventDto eventDto)
     {
@@ -84,13 +84,13 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// </summary>
     /// <param name="id">Guid - id of an event to update</param>
     /// <param name="eventDto">Updated event data</param>
-    /// <response code="200">Returns JSON ApiBaseResult with successful update message</response>
-    /// <response code="404">Returns JSON ApiBaseResult with corresponding message if event not found</response>
-    /// <response code="400">Returns JSON ApiBaseResult with with corresponding message if there are validation errors</response>
+    /// <response code="200">Returns JSON ApiResult with successful update message</response>
+    /// <response code="404">Returns JSON ApiErrorResult with corresponding message if event not found</response>
+    /// <response code="400">Returns JSON ApiErrorResult with corresponding message if there are validation errors</response>
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResult), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorResult), StatusCodes.Status400BadRequest)]
     [Produces("application/json")]
     public ActionResult<ApiResult> Update(Guid id, [FromBody] EventDto eventDto)
     {
@@ -102,11 +102,11 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// Delete an event by its Guid
     /// </summary>
     /// <param name="id">Guid - id of an event to delete</param>
-    /// <response code="200">Returns JSON ApiBaseResult with successful delete message</response>
-    /// <response code="404">Returns JSON ApiBaseResult with corresponding message if event not found</response>
+    /// <response code="200">Returns JSON ApiResult with successful delete message</response>
+    /// <response code="404">Returns JSON ApiErrorResult with corresponding message if event not found</response>
     [HttpDelete("{id}")]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorResult), StatusCodes.Status404NotFound)]
     [Produces("application/json")]
     public ActionResult<ApiResult> Delete(Guid id)
     {

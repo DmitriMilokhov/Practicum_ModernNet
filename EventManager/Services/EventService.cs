@@ -7,13 +7,22 @@ namespace EventManager.Services;
 
 public class EventService(IEventsRepository repository) : IEventService
 {
-    public List<FullEventDto> GetEvents(EventFilter filter)
+    public PagedResponse<FullEventDto> GetEvents(EventFilter filter)
     {
-        return repository
+        var query = repository
             .GetAll()
-            .ApplyFilter(filter)
+            .ApplyFilter(filter);
+
+        var totalItems = query.Count();
+
+        var items=  query
+            .ApplyPagination(filter.Page, filter.PageSize)
             .Select(e => e.ToDto())
             .ToList();
+
+        var totalPages = (int)Math.Ceiling(totalItems / (double)filter.PageSize);
+
+        return new PagedResponse<FullEventDto>(items, filter.Page, filter.PageSize, totalItems, totalPages);
     }
 
     public FullEventDto GetEvent(Guid id)

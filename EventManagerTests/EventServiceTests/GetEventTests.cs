@@ -1,5 +1,8 @@
 ﻿using EventManager.Infrastructure.Exceptions;
+using FluentAssertions;
 using Moq;
+using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace EventManagerTests.EventServiceTests;
 
@@ -10,16 +13,16 @@ public class GetEventTests : EventServiceTestsBase
     {
         //Arrange
         var eventToFind = TestEvents.Last();
-        EventRepositoryMock.Setup(r => r.Get(It.IsAny<Guid>())).Returns(eventToFind);
+        EventRepositoryMock.Setup(r => r.Get(eventToFind.Id)).Returns(eventToFind);
 
         //Act
         var result = EventService.GetEvent(eventToFind.Id);
 
         //Assert
-        EventRepositoryMock.Verify(r => r.Get(It.IsAny<Guid>()), Times.Once());
+        EventRepositoryMock.Verify(r => r.Get(eventToFind.Id), Times.Once());
 
-        Assert.NotNull(result);
-        Assert.Equal(eventToFind.Id, result.Id);
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(eventToFind, options => options.ExcludingMissingMembers());
     }
 
     [Fact]
@@ -32,11 +35,9 @@ public class GetEventTests : EventServiceTestsBase
         EventRepositoryMock.Setup(r => r.Get(It.IsAny<Guid>())).Throws(new EventNotFoundException(randomGuid));
 
         //Act
-        var exception = Record.Exception(() => EventService.GetEvent(randomGuid));
+        var action = () => EventService.GetEvent(randomGuid);
 
         //Assert
-        Assert.NotNull(exception);
-        Assert.IsType<EventNotFoundException>(exception);
-        Assert.Equal(expectedExceptionMessage, exception.Message);
+        action.Should().Throw<EventNotFoundException>().WithMessage(expectedExceptionMessage);
     }
 }

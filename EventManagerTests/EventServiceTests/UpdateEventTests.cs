@@ -1,5 +1,6 @@
 ﻿using EventManager.Infrastructure.Exceptions;
 using EventManager.Models;
+using FluentAssertions;
 using Moq;
 using System.ComponentModel.DataAnnotations;
 
@@ -44,12 +45,10 @@ public class UpdateEventTests : EventServiceTestsBase
                            .Throws(new EventNotFoundException(_eventIdToUpdate));
 
         //Act
-        var exception = Record.Exception(() => EventService.UpdateEvent(_eventIdToUpdate, _newEventData));
+        var action = () => EventService.UpdateEvent(_eventIdToUpdate, _newEventData);
 
         //Assert
-        Assert.NotNull(exception);
-        Assert.IsType<EventNotFoundException>(exception);
-        Assert.Equal(expectedExceptionMessage, exception.Message);
+        action.Should().Throw<EventNotFoundException>().WithMessage(expectedExceptionMessage);
     }
 
     [Theory]
@@ -57,11 +56,9 @@ public class UpdateEventTests : EventServiceTestsBase
     public void UpdateEvent_Negative_ValidationErrors(EventDto eventDto, string expectedExceptionMessage)
     {
         //Act
-        var exception = Record.Exception(() => EventService.UpdateEvent(_eventIdToUpdate, eventDto));
+        var action = () => EventService.UpdateEvent(_eventIdToUpdate, eventDto);
 
         //Assert
-        Assert.NotNull(exception);
-        Assert.IsType<ValidationException>(exception);
-        Assert.Equal(expectedExceptionMessage, exception.Message);
+        action.Should().Throw<ValidationException>().WithMessage(expectedExceptionMessage);
     }
 }

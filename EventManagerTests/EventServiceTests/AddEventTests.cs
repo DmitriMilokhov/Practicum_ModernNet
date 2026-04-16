@@ -1,4 +1,5 @@
 ﻿using EventManager.Models;
+using FluentAssertions;
 using Moq;
 using System.ComponentModel.DataAnnotations;
 
@@ -25,12 +26,9 @@ public class AddEventTests : EventServiceTestsBase
         EventRepositoryMock.Verify(r => r.Add(It.Is<Event>(e => e.Title == newEventDto.Title)),
             Times.Once());
 
-        Assert.NotNull(result);
-        Assert.NotEqual(Guid.Empty, result.Id);
-        Assert.Equal(newEventDto.Title, result.Title);
-        Assert.Equal(newEventDto.Description, result.Description);
-        Assert.Equal(newEventDto.StartAt, result.StartAt);
-        Assert.Equal(newEventDto.EndAt, result.EndAt);
+        result.Should().NotBeNull();
+        result.Id.Should().NotBe(Guid.Empty);
+        result.Should().BeEquivalentTo(newEventDto);
     }    
 
     [Theory]
@@ -38,11 +36,9 @@ public class AddEventTests : EventServiceTestsBase
     public void AddEvent_Negative(EventDto eventDto, string expectedExceptionMessage)
     {
         //Act
-        var exception = Record.Exception(() => EventService.AddEvent(eventDto));
+        var action = () => EventService.AddEvent(eventDto);
 
         //Assert
-        Assert.NotNull(exception);
-        Assert.IsType<ValidationException>(exception);
-        Assert.Equal(expectedExceptionMessage, exception.Message);
+        action.Should().Throw<ValidationException>().WithMessage(expectedExceptionMessage);
     }
 }

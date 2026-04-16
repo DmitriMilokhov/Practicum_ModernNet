@@ -1,4 +1,5 @@
 ﻿using EventManager.Infrastructure.Exceptions;
+using FluentAssertions;
 using Moq;
 
 namespace EventManagerTests.EventServiceTests;
@@ -32,11 +33,9 @@ public class DeleteEventTests : EventServiceTestsBase
                            .Throws(new EventNotFoundException(_eventIdToUpdate));
 
         //Act
-        var exception = Record.Exception(() => EventService.DeleteEvent(_eventIdToUpdate));
+        var action = () => EventService.DeleteEvent(_eventIdToUpdate);
 
         //Assert
-        Assert.NotNull(exception);
-        Assert.IsType<EventNotFoundException>(exception);
-        Assert.Equal(expectedExceptionMessage, exception.Message);
+        action.Should().Throw<EventNotFoundException>().WithMessage(expectedExceptionMessage);
     }
 }

@@ -1,4 +1,6 @@
-﻿using EventManager.Models.Filters;
+﻿using EventManager.Models;
+using EventManager.Models.Filters;
+using FluentAssertions;
 using Moq;
 using System.ComponentModel.DataAnnotations;
 
@@ -36,16 +38,14 @@ public class GetEventsTests : EventServiceTestsBase
         //Assert
         EventRepositoryMock.Verify(r => r.GetAll(), Times.Once());
 
-        Assert.NotNull(result);
+        result.Should().NotBeNull();
+        result.Page.Should().Be(filter.Page);
+        result.PageSize.Should().Be(filter.PageSize);
+        result.TotalItems.Should().Be(expectedTotalItems);
+        result.TotalPages.Should().Be(expectedTotalPages);
 
-        Assert.Equal(filter.Page, result.Page);
-        Assert.Equal(filter.PageSize, result.PageSize);
-        Assert.Equal(expectedTotalItems, result.TotalItems);
-        Assert.Equal(expectedTotalPages, result.TotalPages);
-        Assert.Equal(expectedItemCounts, actualPageItems.Count);
-
-        Assert.Equal(expectedPageItems.Select(e => e.Id), actualPageItems.Select(e => e.Id));
-        Assert.Equal(expectedPageItems.Select(e => e.Title), actualPageItems.Select(e => e.Title));
+        actualPageItems.Should().HaveCount(expectedItemCounts);
+        actualPageItems.Should().BeEquivalentTo(expectedPageItems, options => options.ComparingByMembers<FullEventDto>());
     }
 
     [Theory]
@@ -60,9 +60,9 @@ public class GetEventsTests : EventServiceTestsBase
         var result = EventService.GetEvents(filter);
 
         //Assert
-        Assert.NotNull(result);
-        Assert.Equal(expectedItemsCount, result.TotalItems);
-        Assert.All(result.Items, r => Assert.True(r.Title.Contains(title, StringComparison.OrdinalIgnoreCase)));
+        result.Should().NotBeNull();
+        result.TotalItems.Should().Be(expectedItemsCount);
+        result.Items.Should().OnlyContain(r => r.Title.Contains(title, StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -76,9 +76,9 @@ public class GetEventsTests : EventServiceTestsBase
         var result = EventService.GetEvents(filter);
 
         //Assert
-        Assert.NotNull(result);
-        Assert.Equal(expectedItemsCount, result.TotalItems);
-        Assert.All(result.Items, r => Assert.True(r.StartAt >= filter.From.Value));
+        result.Should().NotBeNull();
+        result.TotalItems.Should().Be(expectedItemsCount);
+        result.Items.Should().OnlyContain(r => r.StartAt >= filter.From.Value);
     }
 
     [Fact]
@@ -92,9 +92,9 @@ public class GetEventsTests : EventServiceTestsBase
         var result = EventService.GetEvents(filter);
 
         //Assert
-        Assert.NotNull(result);
-        Assert.Equal(expectedItemsCount, result.TotalItems);
-        Assert.All(result.Items, r => Assert.True(r.EndAt <= filter.To.Value));
+        result.Should().NotBeNull();
+        result.TotalItems.Should().Be(expectedItemsCount);
+        result.Items.Should().OnlyContain(r => r.EndAt <= filter.To.Value);
     }
 
     [Fact]
@@ -115,10 +115,12 @@ public class GetEventsTests : EventServiceTestsBase
         var result = EventService.GetEvents(filter);
 
         //Assert
-        Assert.NotNull(result);
-        Assert.Equal(expectedItemsCount, result.TotalItems);
-        Assert.All(result.Items, r => Assert.True(r.Title.Contains(filter.Title, StringComparison.OrdinalIgnoreCase)
-            && r.StartAt >= filter.From.Value && r.EndAt <= filter.To.Value));
+        result.Should().NotBeNull();
+        result.TotalItems.Should().Be(expectedItemsCount);
+        result.Items.Should().OnlyContain(r => 
+            r.Title.Contains(filter.Title, StringComparison.OrdinalIgnoreCase) 
+            && r.StartAt >= filter.From.Value 
+            && r.EndAt <= filter.To.Value);
     }
 
 
@@ -133,11 +135,9 @@ public class GetEventsTests : EventServiceTestsBase
     public void GetEvents_Negative_ValidationErrors(EventFilter filter, string expectedExceptionMessage)
     {
         //Act
-        var exception = Record.Exception(() => EventService.GetEvents(filter));
+        var action = () => EventService.GetEvents(filter);
 
         //Assert
-        Assert.NotNull(exception);
-        Assert.IsType<ValidationException>(exception);
-        Assert.Equal(expectedExceptionMessage, exception.Message);
+        action.Should().Throw<ValidationException>().WithMessage(expectedExceptionMessage);
     }
 }

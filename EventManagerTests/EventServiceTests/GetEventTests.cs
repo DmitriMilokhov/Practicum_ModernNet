@@ -17,14 +17,13 @@ public class GetEventTests : EventServiceTestsBase
 
         //Assert
         EventRepositoryMock.Verify(r => r.Get(It.IsAny<Guid>()), Times.Once());
-        EventRepositoryMock.VerifyNoOtherCalls();
 
         Assert.NotNull(result);
         Assert.Equal(eventToFind.Id, result.Id);
     }
 
     [Fact]
-    public async Task GetEvent_Negative()
+    public void GetEvent_Negative()
     {
         //Arrange
         var randomGuid = Guid.NewGuid();

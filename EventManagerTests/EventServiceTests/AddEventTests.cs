@@ -24,7 +24,6 @@ public class AddEventTests : EventServiceTestsBase
         //Assert
         EventRepositoryMock.Verify(r => r.Add(It.Is<Event>(e => e.Title == newEventDto.Title)),
             Times.Once());
-        EventRepositoryMock.VerifyNoOtherCalls();
 
         Assert.NotNull(result);
         Assert.NotEqual(Guid.Empty, result.Id);

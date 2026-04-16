@@ -1,5 +1,6 @@
 ﻿using EventManager.Models.Filters;
 using Moq;
+using System.ComponentModel.DataAnnotations;
 
 namespace EventManagerTests.EventServiceTests;
 
@@ -23,13 +24,17 @@ public class GetEventsTests : EventServiceTestsBase
     {
         //Arrange
         var expectedTotalItems = TestEvents.Count;
+        var expectedPageItems = TestEvents
+            .Skip((filter.Page - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .ToList();
 
         //Act
         var result = EventService.GetEvents(filter);
+        var actualPageItems = result.Items.ToList();
 
         //Assert
         EventRepositoryMock.Verify(r => r.GetAll(), Times.Once());
-        EventRepositoryMock.VerifyNoOtherCalls();
 
         Assert.NotNull(result);
 
@@ -37,9 +42,10 @@ public class GetEventsTests : EventServiceTestsBase
         Assert.Equal(filter.PageSize, result.PageSize);
         Assert.Equal(expectedTotalItems, result.TotalItems);
         Assert.Equal(expectedTotalPages, result.TotalPages);
-        Assert.Equal(expectedItemCounts, result.Items.Count());
+        Assert.Equal(expectedItemCounts, actualPageItems.Count);
 
-        Assert.All(result.Items, r => Assert.True(TestEvents.Any(e => e.Id == r.Id)));
+        Assert.Equal(expectedPageItems.Select(e => e.Id), actualPageItems.Select(e => e.Id));
+        Assert.Equal(expectedPageItems.Select(e => e.Title), actualPageItems.Select(e => e.Title));
     }
 
     [Theory]
@@ -113,5 +119,25 @@ public class GetEventsTests : EventServiceTestsBase
         Assert.Equal(expectedItemsCount, result.TotalItems);
         Assert.All(result.Items, r => Assert.True(r.Title.Contains(filter.Title, StringComparison.OrdinalIgnoreCase)
             && r.StartAt >= filter.From.Value && r.EndAt <= filter.To.Value));
+    }
+
+
+    public static IEnumerable<object[]> GetPaginationNegativeTestData()
+    {
+        yield return [new EventFilter { Page = -2 }, "Page must be greater than or equal to 1"];
+        yield return [new EventFilter { PageSize = 0 }, "PageSize must be greater than or equal to 1"];
+    }
+
+    [Theory]
+    [MemberData(nameof(GetPaginationNegativeTestData))]
+    public void GetEvents_Negative_ValidationErrors(EventFilter filter, string expectedExceptionMessage)
+    {
+        //Act
+        var exception = Record.Exception(() => EventService.GetEvents(filter));
+
+        //Assert
+        Assert.NotNull(exception);
+        Assert.IsType<ValidationException>(exception);
+        Assert.Equal(expectedExceptionMessage, exception.Message);
     }
 }

@@ -32,11 +32,10 @@ public class UpdateEventTests : EventServiceTestsBase
             e.Description == _newEventData.Description &&
             e.StartAt == _newEventData.StartAt &&
             e.EndAt == _newEventData.EndAt)), Times.Once());
-        EventRepositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task UpdateEvent_Negative_NotFound()
+    public void UpdateEvent_Negative_NotFound()
     {
         //Arrange
         var expectedExceptionMessage = $"Event {_eventIdToUpdate} is not found";

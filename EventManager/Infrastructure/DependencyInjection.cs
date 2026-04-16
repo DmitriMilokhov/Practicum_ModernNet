@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 
 namespace EventManager.Infrastructure;
@@ -17,8 +17,16 @@ public static class DependencyInjection
                         kv => kv.Key,
                         kv => kv.Value!.Errors.Select(e => e.ErrorMessage));
 
-                var errorMsg = $"Validation issues. {string.Join(", ", errors.Select(kv => $"{kv.Key}: {string.Join(",", kv.Value)}"))}";
-                var result = new ApiResult {  Message = errorMsg };
+                var errorDetailsMsg = $"{string.Join(", ", errors.Select(kv => $"{kv.Key}: {string.Join(",", kv.Value)}"))}";
+                var result = new ApiErrorResult 
+                { 
+                    Message = "Validation issues. See Error Details", 
+                    ErrorDetails = new ValidationProblemDetails(context.ModelState)
+                    {
+                        Status = StatusCodes.Status400BadRequest,
+                        Detail = errorDetailsMsg
+                    }
+                };
 
                 return new BadRequestObjectResult(result);
             };

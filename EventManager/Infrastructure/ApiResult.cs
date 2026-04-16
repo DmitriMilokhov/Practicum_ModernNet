@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EventManager.Infrastructure;
 
@@ -39,5 +39,5 @@ public class ApiErrorResult : ApiBaseResult
     /// <summary>
     /// Error Data
     /// </summary>
-    public ProblemDetails ErrorDeatails { get; set; }
+    public required ProblemDetails ErrorDetails { get; set; }
 }

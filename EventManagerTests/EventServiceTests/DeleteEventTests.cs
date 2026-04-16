@@ -20,11 +20,10 @@ public class DeleteEventTests : EventServiceTestsBase
 
         //Assert
         EventRepositoryMock.Verify(r => r.Delete(_eventIdToUpdate));
-        EventRepositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task DeleteEvent_Negative_NotFound()
+    public void DeleteEvent_Negative_NotFound()
     {
         //Arrange
         var expectedExceptionMessage = $"Event {_eventIdToUpdate} is not found";

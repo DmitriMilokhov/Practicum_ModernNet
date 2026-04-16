@@ -36,7 +36,7 @@ namespace EventManager.Middleware
             var apiErrorResponse = new ApiErrorResult
             {
                 Message = "Exception occured. See Error Details",
-                ErrorDeatails = ex switch
+                ErrorDetails = ex switch
                 {
                     NotFoundException nf => new ProblemDetails
                     {
@@ -59,7 +59,7 @@ namespace EventManager.Middleware
             };
 
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)apiErrorResponse.ErrorDeatails.Status!;
+            context.Response.StatusCode = (int)apiErrorResponse.ErrorDetails.Status!;
 
             await context.Response.WriteAsJsonAsync(apiErrorResponse);
         }

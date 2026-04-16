@@ -30,7 +30,7 @@ public abstract class EventServiceTestsBase
         EventService = new EventService(EventRepositoryMock.Object);
     }
 
-    protected static IEnumerable<object[]> GetValidationTestData()
+    public static IEnumerable<object[]> GetValidationTestData()
     {
         yield return [ new EventDto
             {
@@ -44,7 +44,7 @@ public abstract class EventServiceTestsBase
 
         yield return [ new EventDto
             {
-                Title = null,
+                Title = null!,
                 Description = "I am new",
                 StartAt = DateTime.Now.AddDays(-5),
                 EndAt = DateTime.Now.AddDays(5)

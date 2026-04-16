@@ -1,18 +1,16 @@
 ﻿using EventManager.Interfaces;
+using EventManager.Interfaces.IFilters;
 using EventManager.Interfaces.IRepositories;
 using EventManager.Models;
 using EventManager.Models.Filters;
-using System.ComponentModel.DataAnnotations;
 
 namespace EventManager.Services;
 
-public class EventService(IEventRepository repository) : IEventService
+public class EventService(IEventRepository repository, IEventFilterValidator eventFilterValidator) : IEventService
 {
     public PagedResponse<FullEventDto> GetEvents(EventFilter filter)
     {
-        //additional validation just in case
-        if (filter.Page < 1) throw new ValidationException("Page must be greater than or equal to 1");
-        if (filter.PageSize < 1) throw new ValidationException("PageSize must be greater than or equal to 1");
+        eventFilterValidator.Validate(filter);
 
         var query = repository
             .GetAll()

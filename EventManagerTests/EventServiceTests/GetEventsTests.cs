@@ -1,4 +1,5 @@
-﻿using EventManager.Models;
+﻿using EventManager.Infrastructure;
+using EventManager.Models;
 using EventManager.Models.Filters;
 using FluentAssertions;
 using Moq;
@@ -51,6 +52,7 @@ public class GetEventsTests : EventServiceTestsBase
     [Theory]
     [InlineData("Holiday", 1)]
     [InlineData("Event", 9)]
+    [InlineData("_", 0)]
     public void GetEvents_Positive_TitleFilter(string title, int expectedItemsCount)
     {
         //Arrange
@@ -124,14 +126,16 @@ public class GetEventsTests : EventServiceTestsBase
     }
 
 
-    public static IEnumerable<object[]> GetPaginationNegativeTestData()
+    public static IEnumerable<object[]> GetFilterNegativeTestData()
     {
-        yield return [new EventFilter { Page = -2 }, "Page must be greater than or equal to 1"];
-        yield return [new EventFilter { PageSize = 0 }, "PageSize must be greater than or equal to 1"];
+        yield return [new EventFilter { Page = -2 }, ValidationMessages.PageMustBeAboveOrEqualOne];
+        yield return [new EventFilter { PageSize = 0 }, ValidationMessages.PageSizeMustBeAboveOrEqualOne];
+        yield return [new EventFilter { Title = " " }, ValidationMessages.TitleFilterWithoutSpacesMsg];
+        yield return [new EventFilter { From = DateTime.Now.AddDays(1), To = DateTime.Now }, ValidationMessages.EndDateLaterThanStartMsg];
     }
 
     [Theory]
-    [MemberData(nameof(GetPaginationNegativeTestData))]
+    [MemberData(nameof(GetFilterNegativeTestData))]
     public void GetEvents_Negative_ValidationErrors(EventFilter filter, string expectedExceptionMessage)
     {
         //Act

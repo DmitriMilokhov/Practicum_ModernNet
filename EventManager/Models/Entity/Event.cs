@@ -1,3 +1,4 @@
+using EventManager.Infrastructure;
 using System.ComponentModel.DataAnnotations;
 
 namespace EventManager.Models;
@@ -35,12 +36,12 @@ public class Event
     {
         if(string.IsNullOrWhiteSpace(title))
         {
-            throw new ValidationException("Title is required");
+            throw new ValidationException(ValidationMessages.TitleIsRequiredMsg);
         }
 
         if (endAt <= startAt)
         {
-            throw new ValidationException("EndAt must be later than StartAt");
+            throw new ValidationException(ValidationMessages.EndDateLaterThanStartMsg);
         }
     }
 }

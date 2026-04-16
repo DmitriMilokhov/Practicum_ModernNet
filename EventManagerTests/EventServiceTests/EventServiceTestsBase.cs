@@ -1,5 +1,7 @@
-﻿using EventManager.Interfaces.IRepositories;
+﻿using EventManager.Infrastructure;
+using EventManager.Interfaces.IRepositories;
 using EventManager.Models;
+using EventManager.Models.Filters;
 using EventManager.Services;
 using Moq;
 
@@ -27,7 +29,7 @@ public abstract class EventServiceTestsBase
 
     protected EventServiceTestsBase()
     {
-        EventService = new EventService(EventRepositoryMock.Object);
+        EventService = new EventService(EventRepositoryMock.Object, new EventFilterValidator());
     }
 
     public static IEnumerable<object[]> GetValidationTestData()
@@ -39,7 +41,7 @@ public abstract class EventServiceTestsBase
                 StartAt = DateTime.Now.AddDays(-5),
                 EndAt = DateTime.Now.AddDays(5)
             },
-            "Title is required"
+            ValidationMessages.TitleIsRequiredMsg
         ];
 
         yield return [ new EventDto
@@ -49,7 +51,7 @@ public abstract class EventServiceTestsBase
                 StartAt = DateTime.Now.AddDays(-5),
                 EndAt = DateTime.Now.AddDays(5)
             },
-            "Title is required"
+            ValidationMessages.TitleIsRequiredMsg
         ];
 
         yield return [ new EventDto
@@ -59,7 +61,7 @@ public abstract class EventServiceTestsBase
                 StartAt = DateTime.Now.AddDays(5),
                 EndAt = DateTime.Now.AddDays(-5)
             },
-            "EndAt must be later than StartAt"
+            ValidationMessages.EndDateLaterThanStartMsg
         ];
     }
 }

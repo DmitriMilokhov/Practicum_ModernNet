@@ -1,27 +1,25 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EventManager.Infrastructure;
+using System.ComponentModel.DataAnnotations;
 
 namespace EventManager.Models;
 
 public class EventDto : IValidatableObject
 {
-    [Required(AllowEmptyStrings = false, ErrorMessage = "Title is required")]
+    [Required(AllowEmptyStrings = false, ErrorMessage = ValidationMessages.TitleIsRequiredMsg)]
     public required string Title { get; set; }
     public string? Description { get; set; }
 
-    [Required(ErrorMessage = "StartAt is required")]
+    [Required(ErrorMessage = ValidationMessages.StartAtIsRequiredMsg)]
     public DateTime? StartAt { get; set; }
 
-    [Required(ErrorMessage = "EndAt is required")]
+    [Required(ErrorMessage = ValidationMessages.EndAtIsRequiredMsg)]
     public DateTime? EndAt { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (EndAt <= StartAt)
         {
-            yield return new ValidationResult(
-                "EndAt must be later than StartAt",
-                new[] { nameof(EndAt) }
-            );
+            yield return new ValidationResult(ValidationMessages.EndDateLaterThanStartMsg, [nameof(EndAt)]);
         }
     }
 }

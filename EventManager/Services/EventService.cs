@@ -1,56 +1,54 @@
-﻿using EventManager.Infrastructure;
-using EventManager.Interfaces;
+﻿using EventManager.Interfaces;
+using EventManager.Interfaces.IFilters;
+using EventManager.Interfaces.IRepositories;
 using EventManager.Models;
+using EventManager.Models.Filters;
 
 namespace EventManager.Services;
 
-public class EventService() : IEventService
+public class EventService(IEventRepository repository, IEventFilterValidator eventFilterValidator) : IEventService
 {
-    private readonly List<Event> _events = [];
-
-    public IReadOnlyList<FullEventDto> GetAllEvents()
+    public PagedResponse<FullEventDto> GetEvents(EventFilter filter)
     {
-        return _events.Select(e => e.ToDto()).ToList().AsReadOnly();
+        eventFilterValidator.Validate(filter);
+
+        var query = repository
+            .GetAll()
+            .ApplyFilter(filter);
+
+        var totalItems = query.Count();
+
+        var items= query
+            .ApplyPagination(filter.Page, filter.PageSize)
+            .Select(e => e.ToDto())
+            .ToList();
+
+        var totalPages = (int)Math.Ceiling(totalItems / (double)filter.PageSize);
+
+        return new PagedResponse<FullEventDto>(items, filter.Page, filter.PageSize, totalItems, totalPages);
     }
 
     public FullEventDto GetEvent(Guid id)
     {
-        var result = TryGetEvent(id);
-        return result.ToDto();
+        return repository.Get(id).ToDto();
     }
 
     public FullEventDto AddEvent(EventDto eventModel)
     {
         var eventEntity = eventModel.ToEntity();
-        _events.Add(eventEntity);
+        repository.Add(eventEntity);
 
         return eventEntity.ToDto();
     }
 
     public void DeleteEvent(Guid eventId)
     {
-        var result = TryGetEvent(eventId);
-        _events.Remove(result);
+        repository.Delete(eventId);
     }
 
     public void UpdateEvent(Guid eventId, EventDto data)
     {
-        //TODO: maybe to return updated data (FullEventDto)?
-
-        var result = TryGetEvent(eventId);
-        result.Update(data.Title, data.Description, data.StartAt!.Value, data.EndAt!.Value);
-    }
-
-    private Event TryGetEvent(Guid id)
-    {
-        var result = _events.FirstOrDefault(e => e.Id == id);
-
-        if (result == null)
-        {
-            throw new NotFoundException($"Event {id} is not found");
-        }
-
-        return result;
+        repository.Update(eventId, data.ToEntity());
     }
 
 }

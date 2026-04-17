@@ -1,4 +1,6 @@
-﻿namespace EventManager.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
+
+namespace EventManager.Infrastructure;
 
 /// <summary>
 ///  Base class with result params
@@ -27,4 +29,15 @@ public class ApiResult<T> : ApiBaseResult
     /// Data of necessary type
     /// </summary>
     public required T Data { get; set; }
+}
+
+/// <summary>
+///  Error Result 
+/// </summary>
+public class ApiErrorResult : ApiBaseResult
+{
+    /// <summary>
+    /// Error Data
+    /// </summary>
+    public required ProblemDetails ErrorDetails { get; set; }
 }

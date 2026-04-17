@@ -17,7 +17,7 @@ namespace EventManager.Middleware
             {
                 logger.LogError(
                     ex,
-                    "Exception occured! Method = {Method}, Path = {Path}, RequestId = {RequestId}",
+                    "Exception occurred! Method = {Method}, Path = {Path}, RequestId = {RequestId}",
                     context.Request.Method,
                     context.Request.Path,
                     context.Request.Headers["x-request-id"]);
@@ -35,7 +35,7 @@ namespace EventManager.Middleware
 
             var apiErrorResponse = new ApiErrorResult
             {
-                Message = "Exception occured. See Error Details",
+                Message = "Exception occurred. See Error Details",
                 ErrorDetails = ex switch
                 {
                     NotFoundException nf => new ProblemDetails

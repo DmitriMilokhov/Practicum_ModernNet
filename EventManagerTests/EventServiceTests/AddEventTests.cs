@@ -15,8 +15,8 @@ public class AddEventTests : EventServiceTestsBase
         {
             Title = "Some new event",
             Description = "I am new",
-            StartAt = DateTime.Now.AddDays(-5),
-            EndAt = DateTime.Now.AddDays(5)
+            StartAt = BaseTestStartDate,
+            EndAt = BaseTestEndDate
         };
 
         //Act

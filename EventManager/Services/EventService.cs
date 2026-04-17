@@ -18,7 +18,7 @@ public class EventService(IEventRepository repository, IEventFilterValidator eve
 
         var totalItems = query.Count();
 
-        var items=  query
+        var items= query
             .ApplyPagination(filter.Page, filter.PageSize)
             .Select(e => e.ToDto())
             .ToList();

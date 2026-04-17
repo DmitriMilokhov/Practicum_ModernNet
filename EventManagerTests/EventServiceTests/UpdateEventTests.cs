@@ -13,8 +13,8 @@ public class UpdateEventTests : EventServiceTestsBase
     {
         Title = "Updated Event",
         Description = "Updated Description",
-        StartAt = DateTime.Now,
-        EndAt = DateTime.Now.AddDays(3),
+        StartAt = BaseTestStartDate,
+        EndAt = BaseTestEndDate,
     };
 
     public UpdateEventTests()

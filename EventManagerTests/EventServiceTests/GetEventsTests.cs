@@ -71,8 +71,8 @@ public class GetEventsTests : EventServiceTestsBase
     public void GetEvents_Positive_StartDateFilter()
     {
         //Arrange
-        var filter = new EventFilter { From = DateTime.Now.AddDays(-6), PageSize = 20 };
-        var expectedItemsCount = 3;
+        var filter = new EventFilter { From = BaseTestStartDate.AddDays(-6), PageSize = 20 };
+        var expectedItemsCount = 5;
 
         //Act
         var result = EventService.GetEvents(filter);
@@ -87,7 +87,7 @@ public class GetEventsTests : EventServiceTestsBase
     public void GetEvents_Positive_EndDateFilter()
     {
         //Arrange
-        var filter = new EventFilter { To = DateTime.Now.AddDays(1), PageSize = 20 };
+        var filter = new EventFilter { To = BaseTestEndDate.AddDays(1), PageSize = 20 };
         var expectedItemsCount = 9;
 
         //Act
@@ -106,12 +106,12 @@ public class GetEventsTests : EventServiceTestsBase
         var filter = new EventFilter
         {
             Title = "Event",
-            From = DateTime.Now.AddDays(-5),
-            To = DateTime.Now.AddDays(1),
+            From = BaseTestStartDate,
+            To = BaseTestEndDate,
             PageSize = 20
         };
 
-        var expectedItemsCount = 2;
+        var expectedItemsCount = 1;
 
         //Act
         var result = EventService.GetEvents(filter);
@@ -131,7 +131,8 @@ public class GetEventsTests : EventServiceTestsBase
         yield return [new EventFilter { Page = -2 }, ValidationMessages.PageMustBeAboveOrEqualOne];
         yield return [new EventFilter { PageSize = 0 }, ValidationMessages.PageSizeMustBeAboveOrEqualOne];
         yield return [new EventFilter { Title = " " }, ValidationMessages.TitleFilterWithoutSpacesMsg];
-        yield return [new EventFilter { From = DateTime.Now.AddDays(1), To = DateTime.Now }, ValidationMessages.EndDateLaterThanStartMsg];
+        yield return [new EventFilter { Title = "    " }, ValidationMessages.TitleFilterWithoutSpacesMsg];
+        yield return [new EventFilter { From = BaseTestEndDate, To = BaseTestStartDate }, ValidationMessages.EndDateLaterThanStartMsg];
     }
 
     [Theory]

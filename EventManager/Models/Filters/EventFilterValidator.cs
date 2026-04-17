@@ -18,7 +18,7 @@ public class EventFilterValidator : IEventFilterValidator
             throw new ValidationException(ValidationMessages.PageSizeMustBeAboveOrEqualOne);
         }
 
-        if (filter.Title is " ")
+        if (filter.Title != null && filter.Title.All(char.IsWhiteSpace))
         {
             throw new ValidationException(ValidationMessages.TitleFilterWithoutSpacesMsg);
         }

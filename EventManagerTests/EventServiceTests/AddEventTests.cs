@@ -8,7 +8,7 @@ namespace EventManagerTests.EventServiceTests;
 public class AddEventTests : EventServiceTestsBase
 {
     [Fact]
-    public void AddEvent_Positive()
+    public async Task AddEvent_Positive()
     {
         //Arrange
         var newEventDto = new EventDto()
@@ -20,10 +20,12 @@ public class AddEventTests : EventServiceTestsBase
         };
 
         //Act
-        var result = EventService.AddEvent(newEventDto);
+        var result = await EventService.AddEventAsync(newEventDto);
 
         //Assert
-        EventRepositoryMock.Verify(r => r.Add(It.Is<Event>(e => e.Title == newEventDto.Title)),
+        EventRepositoryMock.Verify(r => r.AddAsync(
+            It.Is<Event>(e => e.Title == newEventDto.Title),
+            It.IsAny<CancellationToken>()),
             Times.Once());
 
         result.Should().NotBeNull();
@@ -33,12 +35,12 @@ public class AddEventTests : EventServiceTestsBase
 
     [Theory]
     [MemberData(nameof(GetValidationTestData))]
-    public void AddEvent_Negative(EventDto eventDto, string expectedExceptionMessage)
+    public async Task AddEvent_Negative(EventDto eventDto, string expectedExceptionMessage)
     {
         //Act
-        var action = () => EventService.AddEvent(eventDto);
+        var action = async () => await EventService.AddEventAsync(eventDto);
 
         //Assert
-        action.Should().Throw<ValidationException>().WithMessage(expectedExceptionMessage);
+        await action.Should().ThrowAsync<ValidationException>().WithMessage(expectedExceptionMessage);
     }
 }

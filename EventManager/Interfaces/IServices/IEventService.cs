@@ -5,9 +5,9 @@ namespace EventManager.Interfaces;
 
 public interface IEventService
 {
-    PagedResponse<FullEventDto> GetEvents(EventFilter filter);
-    FullEventDto GetEvent(Guid id);
-    FullEventDto AddEvent(EventDto eventModel);
-    void UpdateEvent(Guid eventId, EventDto data);
-    void DeleteEvent(Guid eventId);
+    Task<PagedResponse<FullEventDto>> GetEventsAsync(EventFilter filter, CancellationToken ct = default);
+    Task<FullEventDto> GetEventAsync(Guid id, CancellationToken ct = default);
+    Task<FullEventDto> AddEventAsync(EventDto eventModel, CancellationToken ct = default);
+    Task UpdateEventAsync(Guid eventId, EventDto data, CancellationToken ct = default);
+    Task DeleteEventAsync(Guid eventId, CancellationToken ct = default);
 }

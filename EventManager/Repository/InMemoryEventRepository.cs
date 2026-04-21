@@ -8,31 +8,34 @@ public class InMemoryEventRepository : IEventRepository
 {
     private readonly List<Event> _events = [];
 
-    public IReadOnlyList<Event> GetAll()
+    public Task<IReadOnlyList<Event>> GetAllAsync(CancellationToken ct = default)
     {
-        return [.. _events];
+        return Task.FromResult<IReadOnlyList<Event>>([.. _events]);
     }
 
-    public Event Get(Guid id)
+    public Task<Event> GetAsync(Guid id, CancellationToken ct = default)
     {
-        return TryGetEvent(id);
+        return Task.FromResult(TryGetEvent(id));
     }
 
-    public void Add(Event eventModel)
+    public Task AddAsync(Event eventModel, CancellationToken ct = default)
     {
         _events.Add(eventModel);
+        return Task.CompletedTask;
     }
 
-    public void Update(Guid eventId, Event data)
+    public Task UpdateAsync(Guid eventId, Event data, CancellationToken ct = default)
     {
         var result = TryGetEvent(eventId);
         result.Update(data.Title, data.Description, data.StartAt, data.EndAt);
+        return Task.CompletedTask;
     }
 
-    public void Delete(Guid eventId)
+    public Task DeleteAsync(Guid eventId, CancellationToken ct = default)
     {
         var result = TryGetEvent(eventId);
         _events.Remove(result);
+        return Task.CompletedTask;
     }
 
     private Event TryGetEvent(Guid id)

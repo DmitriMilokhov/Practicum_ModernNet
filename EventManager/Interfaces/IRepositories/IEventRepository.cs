@@ -4,9 +4,9 @@ namespace EventManager.Interfaces.IRepositories;
 
 public interface IEventRepository
 {
-    IReadOnlyList<Event> GetAll();
-    Event Get(Guid id);
-    void Add(Event eventModel);
-    void Update(Guid eventId, Event data);
-    void Delete(Guid eventId);
+    Task<IReadOnlyList<Event>> GetAllAsync(CancellationToken ct = default);
+    Task<Event> GetAsync(Guid id, CancellationToken ct = default);
+    Task AddAsync(Event eventModel, CancellationToken ct = default);
+    Task UpdateAsync(Guid eventId, Event data, CancellationToken ct = default);
+    Task DeleteAsync(Guid eventId, CancellationToken ct = default);
 }

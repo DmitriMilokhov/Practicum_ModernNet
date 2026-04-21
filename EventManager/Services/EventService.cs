@@ -8,13 +8,14 @@ namespace EventManager.Services;
 
 public class EventService(IEventRepository repository, IEventFilterValidator eventFilterValidator) : IEventService
 {
-    public PagedResponse<FullEventDto> GetEvents(EventFilter filter)
+    public async Task<PagedResponse<FullEventDto>> GetEventsAsync(EventFilter filter, CancellationToken ct = default)
     {
         eventFilterValidator.Validate(filter);
 
-        var query = repository
-            .GetAll()
-            .ApplyFilter(filter);
+        ct.ThrowIfCancellationRequested();
+
+        var data = await repository.GetAllAsync(ct);
+        var query = data.ApplyFilter(filter);
 
         var totalItems = query.Count();
 
@@ -28,27 +29,33 @@ public class EventService(IEventRepository repository, IEventFilterValidator eve
         return new PagedResponse<FullEventDto>(items, filter.Page, filter.PageSize, totalItems, totalPages);
     }
 
-    public FullEventDto GetEvent(Guid id)
+    public async Task<FullEventDto> GetEventAsync(Guid id, CancellationToken ct = default)
     {
-        return repository.Get(id).ToDto();
+        ct.ThrowIfCancellationRequested();
+        var eventData = await repository.GetAsync(id, ct);
+        return eventData.ToDto();
     }
 
-    public FullEventDto AddEvent(EventDto eventModel)
+    public async Task<FullEventDto> AddEventAsync(EventDto eventModel, CancellationToken ct = default)
     {
         var eventEntity = eventModel.ToEntity();
-        repository.Add(eventEntity);
+
+        ct.ThrowIfCancellationRequested();
+        await repository.AddAsync(eventEntity, ct);
 
         return eventEntity.ToDto();
     }
 
-    public void DeleteEvent(Guid eventId)
+    public async Task DeleteEventAsync(Guid eventId, CancellationToken ct = default)
     {
-        repository.Delete(eventId);
+        ct.ThrowIfCancellationRequested();
+        await repository.DeleteAsync(eventId, ct);
     }
 
-    public void UpdateEvent(Guid eventId, EventDto data)
+    public async Task UpdateEventAsync(Guid eventId, EventDto data, CancellationToken ct = default)
     {
-        repository.Update(eventId, data.ToEntity());
+        ct.ThrowIfCancellationRequested();
+        await repository.UpdateAsync(eventId, data.ToEntity(), ct);
     }
 
 }

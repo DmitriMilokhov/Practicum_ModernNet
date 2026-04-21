@@ -11,7 +11,8 @@ public class GetEventsTests : EventServiceTestsBase
 {
     public GetEventsTests()
     {
-        EventRepositoryMock.Setup(mock => mock.GetAll()).Returns(TestEvents);
+        EventRepositoryMock.Setup(mock => mock.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestEvents);
     }
 
     public static IEnumerable<object[]> GetPaginationTestData()
@@ -23,7 +24,7 @@ public class GetEventsTests : EventServiceTestsBase
 
     [Theory]
     [MemberData(nameof(GetPaginationTestData))]
-    public void GetEvents_Positive_WithPagination(EventFilter filter, int expectedTotalPages, int expectedItemCounts)
+    public async Task GetEvents_Positive_WithPagination(EventFilter filter, int expectedTotalPages, int expectedItemCounts)
     {
         //Arrange
         var expectedTotalItems = TestEvents.Count;
@@ -33,11 +34,11 @@ public class GetEventsTests : EventServiceTestsBase
             .ToList();
 
         //Act
-        var result = EventService.GetEvents(filter);
+        var result = await EventService.GetEventsAsync(filter);
         var actualPageItems = result.Items.ToList();
 
         //Assert
-        EventRepositoryMock.Verify(r => r.GetAll(), Times.Once());
+        EventRepositoryMock.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once());
 
         result.Should().NotBeNull();
         result.Page.Should().Be(filter.Page);
@@ -53,13 +54,13 @@ public class GetEventsTests : EventServiceTestsBase
     [InlineData("Holiday", 1)]
     [InlineData("Event", 9)]
     [InlineData("_", 0)]
-    public void GetEvents_Positive_TitleFilter(string title, int expectedItemsCount)
+    public async Task GetEvents_Positive_TitleFilter(string title, int expectedItemsCount)
     {
         //Arrange
         var filter = new EventFilter { Title = title };
 
         //Act
-        var result = EventService.GetEvents(filter);
+        var result = await EventService.GetEventsAsync(filter);
 
         //Assert
         result.Should().NotBeNull();
@@ -68,14 +69,14 @@ public class GetEventsTests : EventServiceTestsBase
     }
 
     [Fact]
-    public void GetEvents_Positive_StartDateFilter()
+    public async Task GetEvents_Positive_StartDateFilter()
     {
         //Arrange
         var filter = new EventFilter { From = BaseTestStartDate.AddDays(-6), PageSize = 20 };
         var expectedItemsCount = 5;
 
         //Act
-        var result = EventService.GetEvents(filter);
+        var result = await EventService.GetEventsAsync(filter);
 
         //Assert
         result.Should().NotBeNull();
@@ -84,14 +85,14 @@ public class GetEventsTests : EventServiceTestsBase
     }
 
     [Fact]
-    public void GetEvents_Positive_EndDateFilter()
+    public async Task GetEvents_Positive_EndDateFilter()
     {
         //Arrange
         var filter = new EventFilter { To = BaseTestEndDate.AddDays(1), PageSize = 20 };
         var expectedItemsCount = 9;
 
         //Act
-        var result = EventService.GetEvents(filter);
+        var result = await EventService.GetEventsAsync(filter);
 
         //Assert
         result.Should().NotBeNull();
@@ -100,7 +101,7 @@ public class GetEventsTests : EventServiceTestsBase
     }
 
     [Fact]
-    public void GetEvents_Positive_MixFilter()
+    public async Task GetEvents_Positive_MixFilter()
     {
         //Arrange
         var filter = new EventFilter
@@ -114,7 +115,7 @@ public class GetEventsTests : EventServiceTestsBase
         var expectedItemsCount = 1;
 
         //Act
-        var result = EventService.GetEvents(filter);
+        var result = await EventService.GetEventsAsync(filter);
 
         //Assert
         result.Should().NotBeNull();
@@ -137,12 +138,12 @@ public class GetEventsTests : EventServiceTestsBase
 
     [Theory]
     [MemberData(nameof(GetFilterNegativeTestData))]
-    public void GetEvents_Negative_ValidationErrors(EventFilter filter, string expectedExceptionMessage)
+    public async Task GetEvents_Negative_ValidationErrors(EventFilter filter, string expectedExceptionMessage)
     {
         //Act
-        var action = () => EventService.GetEvents(filter);
+        var action = async () => await EventService.GetEventsAsync(filter);
 
         //Assert
-        action.Should().Throw<ValidationException>().WithMessage(expectedExceptionMessage);
+        await action.Should().ThrowAsync<ValidationException>().WithMessage(expectedExceptionMessage);
     }
 }

@@ -13,6 +13,10 @@ namespace EventManager.Middleware
             {
                 await next(context);
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 logger.LogError(

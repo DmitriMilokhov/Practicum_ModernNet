@@ -1,5 +1,5 @@
-﻿using EventManager.Infrastructure.Exceptions;
-using EventManager.Models;
+﻿using EventManager.Features.Events.Model;
+using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
 using Moq;
 using System.ComponentModel.DataAnnotations;

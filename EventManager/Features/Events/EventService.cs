@@ -1,10 +1,8 @@
-﻿using EventManager.Interfaces;
-using EventManager.Interfaces.IFilters;
-using EventManager.Interfaces.IRepositories;
+﻿using EventManager.Features.Events.Interfaces;
+using EventManager.Features.Events.Model;
 using EventManager.Models;
-using EventManager.Models.Filters;
 
-namespace EventManager.Services;
+namespace EventManager.Features.Events;
 
 public class EventService(IEventRepository repository, IEventFilterValidator eventFilterValidator) : IEventService
 {

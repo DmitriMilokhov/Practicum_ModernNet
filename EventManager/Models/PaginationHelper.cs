@@ -1,4 +1,4 @@
-﻿namespace EventManager.Models.Filters;
+﻿namespace EventManager.Models;
 
 public record PagedResponse<T>(
     IEnumerable<T> Items,

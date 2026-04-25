@@ -1,6 +1,5 @@
-﻿using EventManager.Infrastructure;
-using EventManager.Models;
-using EventManager.Models.Filters;
+﻿using EventManager.Features.Events.Model;
+using EventManager.Infrastructure;
 using FluentAssertions;
 using Moq;
 using System.ComponentModel.DataAnnotations;

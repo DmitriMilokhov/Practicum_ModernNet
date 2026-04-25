@@ -1,4 +1,4 @@
-﻿namespace EventManager.Models.Filters;
+﻿namespace EventManager.Features.Events.Model;
 
 public static class EventFilterExtensions
 {

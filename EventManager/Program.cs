@@ -1,7 +1,6 @@
+using EventManager.Features.Events;
 using EventManager.Infrastructure;
 using EventManager.Middleware;
-using EventManager.Repository;
-using EventManager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();
@@ -17,8 +16,7 @@ if(isDevelopment)
 }
 
 //services
-builder.Services.AddAppRepositories();
-builder.Services.AddAppServices();
+builder.Services.AddEventServices();
 builder.Services.AddInfrastructure();
 
 builder.Logging.AddConsole();

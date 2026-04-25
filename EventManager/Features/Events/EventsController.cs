@@ -1,10 +1,10 @@
-﻿using EventManager.Infrastructure;
-using EventManager.Interfaces;
+﻿using EventManager.Features.Events.Interfaces;
+using EventManager.Features.Events.Model;
+using EventManager.Infrastructure;
 using EventManager.Models;
-using EventManager.Models.Filters;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EventManager.Controllers;
+namespace EventManager.Features.Events;
 
 [ApiController]
 [Route("[controller]")]
@@ -48,7 +48,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     [ProducesResponseType(typeof(ApiResult<FullEventDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResult), StatusCodes.Status404NotFound)]
     [Produces("application/json")]
-    [HttpGet("{id}")]
+    [HttpGet("{id}", Name = "GetAsync")]
     public async Task<ActionResult<ApiResult<FullEventDto>>> GetAsync(Guid id, CancellationToken ct = default)
     {
         var eventDto = await eventService.GetEventAsync(id, ct);
@@ -74,7 +74,7 @@ public class EventsController(IEventService eventService) : ControllerBase
         CancellationToken ct = default)
     {
         var createdEvent = await eventService.AddEventAsync(eventDto, ct);
-        return CreatedAtAction(nameof(GetAsync), new { id = createdEvent.Id }, new ApiResult<FullEventDto>
+        return CreatedAtRoute("GetAsync", new { id = createdEvent.Id }, new ApiResult<FullEventDto>
         {
             Data = createdEvent,
             Message = $"Event created: {createdEvent.Id}"

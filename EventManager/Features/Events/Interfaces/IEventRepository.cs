@@ -1,6 +1,6 @@
-﻿using EventManager.Models;
+﻿using EventManager.Features.Events.Model;
 
-namespace EventManager.Interfaces.IRepositories;
+namespace EventManager.Features.Events.Interfaces;
 
 public interface IEventRepository
 {

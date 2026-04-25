@@ -1,4 +1,4 @@
-﻿using EventManager.Models;
+﻿using EventManager.Features.Events.Model;
 using FluentAssertions;
 using Moq;
 using System.ComponentModel.DataAnnotations;

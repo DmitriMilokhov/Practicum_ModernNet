@@ -1,4 +1,4 @@
-﻿namespace EventManager.Models;
+﻿namespace EventManager.Features.Events.Model;
 
 public static class EventMapper
 {

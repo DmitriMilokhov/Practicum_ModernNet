@@ -1,7 +1,7 @@
-﻿using EventManager.Models;
-using EventManager.Models.Filters;
+﻿using EventManager.Features.Events.Model;
+using EventManager.Models;
 
-namespace EventManager.Interfaces;
+namespace EventManager.Features.Events.Interfaces;
 
 public interface IEventService
 {

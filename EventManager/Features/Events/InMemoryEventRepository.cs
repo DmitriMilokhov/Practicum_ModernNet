@@ -1,8 +1,8 @@
-﻿using EventManager.Infrastructure.Exceptions;
-using EventManager.Interfaces.IRepositories;
-using EventManager.Models;
+﻿using EventManager.Features.Events.Interfaces;
+using EventManager.Features.Events.Model;
+using EventManager.Infrastructure.Exceptions;
 
-namespace EventManager.Repository;
+namespace EventManager.Features.Events;
 
 public class InMemoryEventRepository : IEventRepository
 {

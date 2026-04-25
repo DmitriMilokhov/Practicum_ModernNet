@@ -1,7 +1,7 @@
 ﻿using EventManager.Infrastructure;
 using System.ComponentModel.DataAnnotations;
 
-namespace EventManager.Models;
+namespace EventManager.Features.Events.Model;
 
 public class EventDto : IValidatableObject
 {

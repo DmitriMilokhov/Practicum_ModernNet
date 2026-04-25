@@ -1,8 +1,8 @@
-﻿using EventManager.Infrastructure;
-using EventManager.Interfaces.IFilters;
+﻿using EventManager.Features.Events.Interfaces;
+using EventManager.Infrastructure;
 using System.ComponentModel.DataAnnotations;
 
-namespace EventManager.Models.Filters;
+namespace EventManager.Features.Events.Model;
 
 public class EventFilterValidator : IEventFilterValidator
 {

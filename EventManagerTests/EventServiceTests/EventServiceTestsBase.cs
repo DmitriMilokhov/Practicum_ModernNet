@@ -1,8 +1,7 @@
-﻿using EventManager.Infrastructure;
-using EventManager.Interfaces.IRepositories;
-using EventManager.Models;
-using EventManager.Models.Filters;
-using EventManager.Services;
+﻿using EventManager.Features.Events;
+using EventManager.Features.Events.Interfaces;
+using EventManager.Features.Events.Model;
+using EventManager.Infrastructure;
 using Moq;
 
 namespace EventManagerTests.EventServiceTests;

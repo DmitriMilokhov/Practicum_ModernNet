@@ -43,7 +43,7 @@ public abstract class EventServiceTestsBase
                 StartAt = BaseTestStartDate,
                 EndAt = BaseTestEndDate
             },
-            Messages.TitleIsRequiredMsg
+            Constants.TitleIsRequiredMsg
         ];
 
         yield return [ new EventDto
@@ -53,7 +53,7 @@ public abstract class EventServiceTestsBase
                 StartAt = BaseTestStartDate,
                 EndAt = BaseTestEndDate
             },
-            Messages.TitleIsRequiredMsg
+            Constants.TitleIsRequiredMsg
         ];
 
         yield return [ new EventDto
@@ -63,7 +63,7 @@ public abstract class EventServiceTestsBase
                 StartAt = BaseTestEndDate,
                 EndAt = BaseTestStartDate
             },
-            Messages.EndDateLaterThanStartMsg
+            Constants.EndDateLaterThanStartMsg
         ];
     }
 }

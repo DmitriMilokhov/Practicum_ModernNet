@@ -128,11 +128,11 @@ public class GetEventsTests : EventServiceTestsBase
 
     public static IEnumerable<object[]> GetFilterNegativeTestData()
     {
-        yield return [new EventFilter { Page = -2 }, Messages.PageMustBeAboveOrEqualOne];
-        yield return [new EventFilter { PageSize = 0 }, Messages.PageSizeMustBeAboveOrEqualOne];
-        yield return [new EventFilter { Title = " " }, Messages.TitleFilterWithoutSpacesMsg];
-        yield return [new EventFilter { Title = "    " }, Messages.TitleFilterWithoutSpacesMsg];
-        yield return [new EventFilter { From = BaseTestEndDate, To = BaseTestStartDate }, Messages.EndDateLaterThanStartMsg];
+        yield return [new EventFilter { Page = -2 }, Constants.PageMustBeAboveOrEqualOne];
+        yield return [new EventFilter { PageSize = 0 }, Constants.PageSizeMustBeAboveOrEqualOne];
+        yield return [new EventFilter { Title = " " }, Constants.TitleFilterWithoutSpacesMsg];
+        yield return [new EventFilter { Title = "    " }, Constants.TitleFilterWithoutSpacesMsg];
+        yield return [new EventFilter { From = BaseTestEndDate, To = BaseTestStartDate }, Constants.EndDateLaterThanStartMsg];
     }
 
     [Theory]

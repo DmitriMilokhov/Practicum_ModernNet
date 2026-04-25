@@ -1,4 +1,4 @@
-using EventManager.Infrastructure;
+using EventManager.Infrastructure.Constants;
 using System.ComponentModel.DataAnnotations;
 
 namespace EventManager.Features.Events.Model;
@@ -36,12 +36,12 @@ public class Event
     {
         if(string.IsNullOrWhiteSpace(title))
         {
-            throw new ValidationException(ValidationMessages.TitleIsRequiredMsg);
+            throw new ValidationException(Messages.TitleIsRequiredMsg);
         }
 
         if (endAt <= startAt)
         {
-            throw new ValidationException(ValidationMessages.EndDateLaterThanStartMsg);
+            throw new ValidationException(Messages.EndDateLaterThanStartMsg);
         }
     }
 }

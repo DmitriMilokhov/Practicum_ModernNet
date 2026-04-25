@@ -1,20 +1,20 @@
-﻿using EventManager.Infrastructure;
+﻿using EventManager.Infrastructure.Constants;
 using System.ComponentModel.DataAnnotations;
 
 namespace EventManager.Features.Bookings.Model;
 
 public class BookingDto //: IValidatableObject
 {
-    [Required(ErrorMessage = ValidationMessages.IdIsRequiredMsg)]
+    [Required(ErrorMessage = Messages.IdIsRequiredMsg)]
     public Guid Id { get; init; }
 
-    [Required(ErrorMessage = ValidationMessages.EventIdIsRequiredMsg)]
+    [Required(ErrorMessage = Messages.EventIdIsRequiredMsg)]
     public required Guid EventId { get; set; }
 
-    [Required(ErrorMessage = ValidationMessages.BookingStatusIsRequiredMsg)]
+    [Required(ErrorMessage = Messages.BookingStatusIsRequiredMsg)]
     public BookingStatus Status { get; set; }
 
-    [Required(ErrorMessage = ValidationMessages.CreatedAtIsRequiredMsg)]
+    [Required(ErrorMessage = Messages.CreatedAtIsRequiredMsg)]
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? ProcessedAt { get; set; }

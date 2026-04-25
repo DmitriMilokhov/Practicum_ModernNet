@@ -1,5 +1,5 @@
-﻿using EventManager.Infrastructure;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using EventManager.Infrastructure.Constants;
 
 namespace EventManager.Features.Bookings.Model;
 
@@ -21,7 +21,7 @@ public class Booking
 
         if (processedAt.Value < CreatedAt)
         {
-            throw new ValidationException(ValidationMessages.ProcessedDateLaterThanCreatedMsg);
+            throw new ValidationException(Messages.ProcessedDateLaterThanCreatedMsg);
         }
 
         ProcessedAt = processedAt;

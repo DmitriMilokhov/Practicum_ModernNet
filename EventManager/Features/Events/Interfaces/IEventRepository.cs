@@ -6,7 +6,10 @@ public interface IEventRepository
 {
     Task<IReadOnlyList<Event>> GetAllAsync(CancellationToken ct = default);
     Task<Event> GetAsync(Guid id, CancellationToken ct = default);
+    Task<bool> ExistsAsync(Guid id, CancellationToken ct = default);
+
     Task AddAsync(Event eventModel, CancellationToken ct = default);
     Task UpdateAsync(Guid eventId, Event data, CancellationToken ct = default);
     Task DeleteAsync(Guid eventId, CancellationToken ct = default);
+    
 }

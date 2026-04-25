@@ -1,4 +1,4 @@
-using EventManager.Infrastructure;
+using EventManager.Infrastructure.Constants;
 using System.ComponentModel.DataAnnotations;
 
 namespace EventManager.Features.Events.Model;
@@ -15,10 +15,10 @@ public class EventFilter
     public DateTime? To { get; init; }
 
     /// <summary>Page number (starting from 1)</summary>
-    [Range(1, int.MaxValue, ErrorMessage = ValidationMessages.PageMustBeAboveOrEqualOne)]
+    [Range(1, int.MaxValue, ErrorMessage = Messages.PageMustBeAboveOrEqualOne)]
     public int Page { get; init; } = 1;
 
     /// <summary>Items per page (10 by default)</summary>
-    [Range(1, int.MaxValue, ErrorMessage = ValidationMessages.PageSizeMustBeAboveOrEqualOne)]
+    [Range(1, int.MaxValue, ErrorMessage = Messages.PageSizeMustBeAboveOrEqualOne)]
     public int PageSize { get; init; } = 10;
 }

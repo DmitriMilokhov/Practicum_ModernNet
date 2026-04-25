@@ -7,8 +7,7 @@ public static class DependencyInjection
     public static IServiceCollection AddBookingServices(this IServiceCollection services) 
     {
         services.AddSingleton<IBookingRepository, InMemoryBookingRepository>();
-
-        //services.AddScoped<IEventService, EventService>();
+        services.AddScoped<IBookingService, BookingService>();
 
         return services;
     }

@@ -1,6 +1,6 @@
-﻿namespace EventManager.Infrastructure;
+﻿namespace EventManager.Infrastructure.Constants;
 
-public static class ValidationMessages
+public static partial class Messages
 {
     public const string BookingStatusIsRequiredMsg = "BookingStatus is required";
     public const string CreatedAtIsRequiredMsg = "CreatedAt is required";

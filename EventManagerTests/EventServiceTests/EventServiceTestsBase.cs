@@ -1,7 +1,7 @@
 ﻿using EventManager.Features.Events;
 using EventManager.Features.Events.Interfaces;
 using EventManager.Features.Events.Model;
-using EventManager.Infrastructure;
+using EventManager.Infrastructure.Constants;
 using Moq;
 
 namespace EventManagerTests.EventServiceTests;
@@ -43,7 +43,7 @@ public abstract class EventServiceTestsBase
                 StartAt = BaseTestStartDate,
                 EndAt = BaseTestEndDate
             },
-            ValidationMessages.TitleIsRequiredMsg
+            Messages.TitleIsRequiredMsg
         ];
 
         yield return [ new EventDto
@@ -53,7 +53,7 @@ public abstract class EventServiceTestsBase
                 StartAt = BaseTestStartDate,
                 EndAt = BaseTestEndDate
             },
-            ValidationMessages.TitleIsRequiredMsg
+            Messages.TitleIsRequiredMsg
         ];
 
         yield return [ new EventDto
@@ -63,7 +63,7 @@ public abstract class EventServiceTestsBase
                 StartAt = BaseTestEndDate,
                 EndAt = BaseTestStartDate
             },
-            ValidationMessages.EndDateLaterThanStartMsg
+            Messages.EndDateLaterThanStartMsg
         ];
     }
 }

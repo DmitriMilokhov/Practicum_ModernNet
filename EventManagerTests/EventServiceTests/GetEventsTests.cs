@@ -1,5 +1,5 @@
 ﻿using EventManager.Features.Events.Model;
-using EventManager.Infrastructure;
+using EventManager.Infrastructure.Constants;
 using FluentAssertions;
 using Moq;
 using System.ComponentModel.DataAnnotations;
@@ -128,11 +128,11 @@ public class GetEventsTests : EventServiceTestsBase
 
     public static IEnumerable<object[]> GetFilterNegativeTestData()
     {
-        yield return [new EventFilter { Page = -2 }, ValidationMessages.PageMustBeAboveOrEqualOne];
-        yield return [new EventFilter { PageSize = 0 }, ValidationMessages.PageSizeMustBeAboveOrEqualOne];
-        yield return [new EventFilter { Title = " " }, ValidationMessages.TitleFilterWithoutSpacesMsg];
-        yield return [new EventFilter { Title = "    " }, ValidationMessages.TitleFilterWithoutSpacesMsg];
-        yield return [new EventFilter { From = BaseTestEndDate, To = BaseTestStartDate }, ValidationMessages.EndDateLaterThanStartMsg];
+        yield return [new EventFilter { Page = -2 }, Messages.PageMustBeAboveOrEqualOne];
+        yield return [new EventFilter { PageSize = 0 }, Messages.PageSizeMustBeAboveOrEqualOne];
+        yield return [new EventFilter { Title = " " }, Messages.TitleFilterWithoutSpacesMsg];
+        yield return [new EventFilter { Title = "    " }, Messages.TitleFilterWithoutSpacesMsg];
+        yield return [new EventFilter { From = BaseTestEndDate, To = BaseTestStartDate }, Messages.EndDateLaterThanStartMsg];
     }
 
     [Theory]

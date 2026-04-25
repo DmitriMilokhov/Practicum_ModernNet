@@ -1,5 +1,5 @@
 ﻿using EventManager.Features.Events.Interfaces;
-using EventManager.Infrastructure;
+using EventManager.Infrastructure.Constants;
 using System.ComponentModel.DataAnnotations;
 
 namespace EventManager.Features.Events.Model;
@@ -10,22 +10,22 @@ public class EventFilterValidator : IEventFilterValidator
     {
         if (filter.Page < 1)
         {
-            throw new ValidationException(ValidationMessages.PageMustBeAboveOrEqualOne);
+            throw new ValidationException(Messages.PageMustBeAboveOrEqualOne);
         }
 
         if (filter.PageSize < 1)
         {
-            throw new ValidationException(ValidationMessages.PageSizeMustBeAboveOrEqualOne);
+            throw new ValidationException(Messages.PageSizeMustBeAboveOrEqualOne);
         }
 
         if (filter.Title != null && filter.Title.All(char.IsWhiteSpace))
         {
-            throw new ValidationException(ValidationMessages.TitleFilterWithoutSpacesMsg);
+            throw new ValidationException(Messages.TitleFilterWithoutSpacesMsg);
         }
 
         if (filter is { From: not null, To: not null } && filter.To <= filter.From)
         {
-            throw new ValidationException(ValidationMessages.EndDateLaterThanStartMsg);
+            throw new ValidationException(Messages.EndDateLaterThanStartMsg);
         }
     }
 }

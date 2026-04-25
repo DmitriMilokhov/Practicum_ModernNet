@@ -18,6 +18,12 @@ public class InMemoryEventRepository : IEventRepository
         return Task.FromResult(TryGetEvent(id));
     }
 
+    public Task<bool> ExistsAsync(Guid id, CancellationToken ct = default)
+    {
+        var isEventExist = _events.Any(e => e.Id == id);
+        return Task.FromResult(isEventExist);
+    }
+
     public Task AddAsync(Event eventModel, CancellationToken ct = default)
     {
         _events.Add(eventModel);

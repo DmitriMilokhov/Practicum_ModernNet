@@ -20,7 +20,7 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
                     logger.LogInformation("Booking for event {eventId} has been started", booking.EventId);
 
                     await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
-                    
+
                     using var scope = provider.CreateScope();
                     var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
 
@@ -33,11 +33,13 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
             {
                 break;
             }
+            catch (Exception ex) 
+            {
+                logger.LogError(ex, "Error during event booking");
+            }
 
             await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
         }
-
-        await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
 
         logger.LogInformation("Booking background service is stopped");
     }

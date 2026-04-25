@@ -10,8 +10,6 @@ public class EventService(IEventRepository repository, IEventFilterValidator eve
     {
         eventFilterValidator.Validate(filter);
 
-        ct.ThrowIfCancellationRequested();
-
         var data = await repository.GetAllAsync(ct);
         var query = data.ApplyFilter(filter);
 
@@ -29,7 +27,6 @@ public class EventService(IEventRepository repository, IEventFilterValidator eve
 
     public async Task<FullEventDto> GetEventAsync(Guid id, CancellationToken ct = default)
     {
-        ct.ThrowIfCancellationRequested();
         var eventData = await repository.GetAsync(id, ct);
         return eventData.ToDto();
     }
@@ -38,7 +35,6 @@ public class EventService(IEventRepository repository, IEventFilterValidator eve
     {
         var eventEntity = eventModel.ToEntity();
 
-        ct.ThrowIfCancellationRequested();
         await repository.AddAsync(eventEntity, ct);
 
         return eventEntity.ToDto();
@@ -46,13 +42,11 @@ public class EventService(IEventRepository repository, IEventFilterValidator eve
 
     public async Task DeleteEventAsync(Guid eventId, CancellationToken ct = default)
     {
-        ct.ThrowIfCancellationRequested();
         await repository.DeleteAsync(eventId, ct);
     }
 
     public async Task UpdateEventAsync(Guid eventId, EventDto data, CancellationToken ct = default)
     {
-        ct.ThrowIfCancellationRequested();
         await repository.UpdateAsync(eventId, data.ToEntity(), ct);
     }
 

@@ -17,8 +17,6 @@ public class BookingService(IBookingFactory bookingFactory,
         }
 
         var bookingDto = bookingFactory.CreateBookingDto(eventId);
-
-        ct.ThrowIfCancellationRequested();
         await bookingRepository.AddAsync(bookingDto.ToEntity(), ct);
 
         return bookingDto;
@@ -26,16 +24,12 @@ public class BookingService(IBookingFactory bookingFactory,
 
     public async Task<BookingDto> GetBookingByIdAsync(Guid bookingId, CancellationToken ct = default)
     {
-        ct.ThrowIfCancellationRequested();
-
         var bookingEntity = await bookingRepository.GetAsync(bookingId, ct);
         return bookingEntity.ToDto();
     }
 
     public async Task UpdateBookingStatusAsync(Guid bookingId, BookingStatus status, CancellationToken ct = default)
     {
-        ct.ThrowIfCancellationRequested();
-
         var bookingEntity = await bookingRepository.GetAsync(bookingId, ct);
         bookingEntity.Update(status, DateTime.UtcNow);
     }

@@ -129,7 +129,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// </summary>
     /// <param name="id">Guid - id of an event to book</param>
     /// <param name="ct">(optional) - cancellation token</param>
-    /// <response code="201">Returns JSON ApiResult with accepted status</response>
+    /// <response code="202">Returns JSON ApiResult with accepted status</response>
     /// <response code="404">Returns JSON ApiErrorResult with corresponding message if event not found</response>
     [HttpPost("{id:guid}/book")]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status202Accepted)]

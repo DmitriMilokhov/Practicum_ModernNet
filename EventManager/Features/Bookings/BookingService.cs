@@ -5,7 +5,8 @@ using EventManager.Infrastructure.Exceptions;
 
 namespace EventManager.Features.Bookings;
 
-public class BookingService(IBookingRepository bookingRepository, IEventRepository eventRepository) : IBookingService
+public class BookingService(IBookingFactory bookingFactory,
+    IBookingRepository bookingRepository, IEventRepository eventRepository) : IBookingService
 {
     public async Task<BookingDto> CreateBookingAsync(Guid eventId, CancellationToken ct = default)
     {
@@ -15,7 +16,7 @@ public class BookingService(IBookingRepository bookingRepository, IEventReposito
             throw new EntityNotFoundException("Event", eventId);
         }
 
-        var bookingDto = BookingFactory.CreateBookingDto(eventId);
+        var bookingDto = bookingFactory.CreateBookingDto(eventId);
 
         ct.ThrowIfCancellationRequested();
         await bookingRepository.AddAsync(bookingDto.ToEntity(), ct);
@@ -31,7 +32,7 @@ public class BookingService(IBookingRepository bookingRepository, IEventReposito
         return bookingEntity.ToDto();
     }
 
-    public async Task UpdateBookingStatus(Guid bookingId, BookingStatus status, CancellationToken ct = default)
+    public async Task UpdateBookingStatusAsync(Guid bookingId, BookingStatus status, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();
 

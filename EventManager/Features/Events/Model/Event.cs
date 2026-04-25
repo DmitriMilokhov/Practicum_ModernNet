@@ -36,12 +36,12 @@ public class Event
     {
         if(string.IsNullOrWhiteSpace(title))
         {
-            throw new ValidationException(Messages.TitleIsRequiredMsg);
+            throw new ValidationException(Constants.TitleIsRequiredMsg);
         }
 
         if (endAt <= startAt)
         {
-            throw new ValidationException(Messages.EndDateLaterThanStartMsg);
+            throw new ValidationException(Constants.EndDateLaterThanStartMsg);
         }
     }
 }

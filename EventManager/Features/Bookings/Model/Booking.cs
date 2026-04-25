@@ -21,7 +21,7 @@ public class Booking
 
         if (processedAt.Value < CreatedAt)
         {
-            throw new ValidationException(Messages.ProcessedDateLaterThanCreatedMsg);
+            throw new ValidationException(Constants.ProcessedDateLaterThanCreatedMsg);
         }
 
         ProcessedAt = processedAt;

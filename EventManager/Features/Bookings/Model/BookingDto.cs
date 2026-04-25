@@ -3,27 +3,19 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EventManager.Features.Bookings.Model;
 
-public class BookingDto //: IValidatableObject
+public class BookingDto 
 {
-    [Required(ErrorMessage = Messages.IdIsRequiredMsg)]
+    [Required(ErrorMessage = Constants.IdIsRequiredMsg)]
     public Guid Id { get; init; }
 
-    [Required(ErrorMessage = Messages.EventIdIsRequiredMsg)]
+    [Required(ErrorMessage = Constants.EventIdIsRequiredMsg)]
     public required Guid EventId { get; set; }
 
-    [Required(ErrorMessage = Messages.BookingStatusIsRequiredMsg)]
+    [Required(ErrorMessage = Constants.BookingStatusIsRequiredMsg)]
     public BookingStatus Status { get; set; }
 
-    [Required(ErrorMessage = Messages.CreatedAtIsRequiredMsg)]
+    [Required(ErrorMessage = Constants.CreatedAtIsRequiredMsg)]
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? ProcessedAt { get; set; }
-
-    //public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-    //{
-    //    if (EndAt <= StartAt)
-    //    {
-    //        yield return new ValidationResult(ValidationMessages.EndDateLaterThanStartMsg, [nameof(EndAt)]);
-    //    }
-    //}
 }

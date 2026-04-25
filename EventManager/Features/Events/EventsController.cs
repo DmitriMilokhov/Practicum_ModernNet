@@ -1,6 +1,10 @@
-﻿using EventManager.Features.Events.Interfaces;
+﻿using EventManager.Features.Bookings.Interfaces;
+using EventManager.Features.Bookings.Model;
+using EventManager.Features.Events.Interfaces;
 using EventManager.Features.Events.Model;
 using EventManager.Infrastructure;
+using EventManager.Infrastructure.Constants;
+using EventManager.Infrastructure.Interfaces;
 using EventManager.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,7 +12,8 @@ namespace EventManager.Features.Events;
 
 [ApiController]
 [Route("[controller]")]
-public class EventsController(IEventService eventService) : ControllerBase
+public class EventsController(IEventService eventService, IBookingService bookingService, 
+    ITaskQueue<BookingDto> bookingQueue) : ControllerBase
 {
     /// <summary>
     /// Get events
@@ -48,7 +53,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     [ProducesResponseType(typeof(ApiResult<FullEventDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResult), StatusCodes.Status404NotFound)]
     [Produces("application/json")]
-    [HttpGet("{id}", Name = "GetAsync")]
+    [HttpGet("{id:guid}", Name = Constants.GetAsyncRoute)]
     public async Task<ActionResult<ApiResult<FullEventDto>>> GetAsync(Guid id, CancellationToken ct = default)
     {
         var eventDto = await eventService.GetEventAsync(id, ct);
@@ -74,7 +79,7 @@ public class EventsController(IEventService eventService) : ControllerBase
         CancellationToken ct = default)
     {
         var createdEvent = await eventService.AddEventAsync(eventDto, ct);
-        return CreatedAtRoute("GetAsync", new { id = createdEvent.Id }, new ApiResult<FullEventDto>
+        return CreatedAtRoute(Constants.GetAsyncRoute, new { id = createdEvent.Id }, new ApiResult<FullEventDto>
         {
             Data = createdEvent,
             Message = $"Event created: {createdEvent.Id}"
@@ -91,7 +96,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <response code="200">Returns JSON ApiResult with successful update message</response>
     /// <response code="404">Returns JSON ApiErrorResult with corresponding message if event not found</response>
     /// <response code="400">Returns JSON ApiErrorResult with corresponding message if there are validation errors</response>
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResult), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiErrorResult), StatusCodes.Status400BadRequest)]
@@ -109,7 +114,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <param name="ct">(optional) - cancellation token</param>
     /// <response code="200">Returns JSON ApiResult with successful delete message</response>
     /// <response code="404">Returns JSON ApiErrorResult with corresponding message if event not found</response>
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResult), StatusCodes.Status404NotFound)]
     [Produces("application/json")]
@@ -117,5 +122,29 @@ public class EventsController(IEventService eventService) : ControllerBase
     {
         await eventService.DeleteEventAsync(id, ct);
         return Ok(new ApiResult { Message = $"Event deleted: {id}" });
+    }
+
+    /// <summary>
+    /// Event booking
+    /// </summary>
+    /// <param name="id">Guid - id of an event to book</param>
+    /// <param name="ct">(optional) - cancellation token</param>
+    /// <response code="201">Returns JSON ApiResult with accepted status</response>
+    /// <response code="404">Returns JSON ApiErrorResult with corresponding message if event not found</response>
+    [HttpPost("{id:guid}/book")]
+    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(ApiErrorResult), StatusCodes.Status404NotFound)]
+    [Produces("application/json")]
+    public async Task<ActionResult<ApiResult>> BookAsync(Guid id, CancellationToken ct = default)
+    {
+        var bookingDto = await bookingService.CreateBookingAsync(id, ct);
+        bookingQueue.Enqueue(bookingDto);
+
+        return AcceptedAtRoute(Constants.GetBookingIdRoute, new { bookingId = bookingDto.Id }, 
+            new ApiResult<BookingDto>
+            {
+                Data = bookingDto,
+                Message = "Event booking has been accepted and added to queue."
+            });
     }
 }

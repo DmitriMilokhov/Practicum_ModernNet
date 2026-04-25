@@ -10,22 +10,22 @@ public class EventFilterValidator : IEventFilterValidator
     {
         if (filter.Page < 1)
         {
-            throw new ValidationException(Messages.PageMustBeAboveOrEqualOne);
+            throw new ValidationException(Constants.PageMustBeAboveOrEqualOne);
         }
 
         if (filter.PageSize < 1)
         {
-            throw new ValidationException(Messages.PageSizeMustBeAboveOrEqualOne);
+            throw new ValidationException(Constants.PageSizeMustBeAboveOrEqualOne);
         }
 
         if (filter.Title != null && filter.Title.All(char.IsWhiteSpace))
         {
-            throw new ValidationException(Messages.TitleFilterWithoutSpacesMsg);
+            throw new ValidationException(Constants.TitleFilterWithoutSpacesMsg);
         }
 
         if (filter is { From: not null, To: not null } && filter.To <= filter.From)
         {
-            throw new ValidationException(Messages.EndDateLaterThanStartMsg);
+            throw new ValidationException(Constants.EndDateLaterThanStartMsg);
         }
     }
 }

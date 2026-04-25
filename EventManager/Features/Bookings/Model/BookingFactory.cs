@@ -1,8 +1,10 @@
-﻿namespace EventManager.Features.Bookings.Model;
+﻿using EventManager.Features.Bookings.Interfaces;
 
-public static class BookingFactory
+namespace EventManager.Features.Bookings.Model;
+
+public class BookingFactory : IBookingFactory
 {
-    public static BookingDto CreateBookingDto(Guid eventId)
+    public BookingDto CreateBookingDto(Guid eventId)
     {
         return new BookingDto
         {

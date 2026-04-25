@@ -15,10 +15,10 @@ public class EventFilter
     public DateTime? To { get; init; }
 
     /// <summary>Page number (starting from 1)</summary>
-    [Range(1, int.MaxValue, ErrorMessage = Messages.PageMustBeAboveOrEqualOne)]
+    [Range(1, int.MaxValue, ErrorMessage = Constants.PageMustBeAboveOrEqualOne)]
     public int Page { get; init; } = 1;
 
     /// <summary>Items per page (10 by default)</summary>
-    [Range(1, int.MaxValue, ErrorMessage = Messages.PageSizeMustBeAboveOrEqualOne)]
+    [Range(1, int.MaxValue, ErrorMessage = Constants.PageSizeMustBeAboveOrEqualOne)]
     public int PageSize { get; init; } = 10;
 }

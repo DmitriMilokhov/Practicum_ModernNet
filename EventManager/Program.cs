@@ -1,3 +1,4 @@
+using EventManager.Features.Bookings;
 using EventManager.Features.Events;
 using EventManager.Infrastructure;
 using EventManager.Middleware;
@@ -17,6 +18,7 @@ if(isDevelopment)
 
 //services
 builder.Services.AddEventServices();
+builder.Services.AddBookingServices();
 builder.Services.AddInfrastructure();
 
 builder.Logging.AddConsole();

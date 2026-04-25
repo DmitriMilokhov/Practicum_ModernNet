@@ -32,7 +32,7 @@ public class Event
         EndAt = endAt;
     }
 
-    private void Validate(string title, DateTime startAt, DateTime endAt)
+    private static void Validate(string title, DateTime startAt, DateTime endAt)
     {
         if(string.IsNullOrWhiteSpace(title))
         {

@@ -44,7 +44,7 @@ public class InMemoryEventRepository : IEventRepository
 
         if (result == null)
         {
-            throw new EventNotFoundException(id);
+            throw new EntityNotFoundException(nameof(Event), id);
         }
 
         return result;

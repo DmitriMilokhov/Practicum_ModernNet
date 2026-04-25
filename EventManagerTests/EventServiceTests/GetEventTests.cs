@@ -1,4 +1,5 @@
-﻿using EventManager.Infrastructure.Exceptions;
+﻿using EventManager.Features.Events.Model;
+using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
 using Moq;
 using System;
@@ -31,15 +32,15 @@ public class GetEventTests : EventServiceTestsBase
     {
         //Arrange
         var randomGuid = Guid.NewGuid();
-        var expectedExceptionMessage = $"Event {randomGuid} is not found";
+        var expectedExceptionMessage = $"{nameof(Event)} {randomGuid} is not found";
 
         EventRepositoryMock.Setup(r => r.GetAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .Throws(new EventNotFoundException(randomGuid));
+            .Throws(new EntityNotFoundException(nameof(Event), randomGuid));
 
         //Act
         var action = async () => await EventService.GetEventAsync(randomGuid);
 
         //Assert
-        await action.Should().ThrowAsync<EventNotFoundException>().WithMessage(expectedExceptionMessage);
+        await action.Should().ThrowAsync<EntityNotFoundException>().WithMessage(expectedExceptionMessage);
     }
 }

@@ -1,4 +1,5 @@
-﻿using EventManager.Infrastructure.Exceptions;
+﻿using EventManager.Features.Events.Model;
+using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
 using Moq;
 
@@ -27,15 +28,15 @@ public class DeleteEventTests : EventServiceTestsBase
     public async Task DeleteEvent_Negative_NotFound()
     {
         //Arrange
-        var expectedExceptionMessage = $"Event {_eventIdToUpdate} is not found";
+        var expectedExceptionMessage = $"{nameof(Event)} {_eventIdToUpdate} is not found";
 
         EventRepositoryMock.Setup(r => r.DeleteAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                           .Throws(new EventNotFoundException(_eventIdToUpdate));
+                           .Throws(new EntityNotFoundException(nameof(Event), _eventIdToUpdate));
 
         //Act
         var action = () => EventService.DeleteEventAsync(_eventIdToUpdate);
 
         //Assert
-        await action.Should().ThrowAsync<EventNotFoundException>().WithMessage(expectedExceptionMessage);
+        await action.Should().ThrowAsync<EntityNotFoundException>().WithMessage(expectedExceptionMessage);
     }
 }

@@ -40,18 +40,18 @@ public class UpdateEventTests : EventServiceTestsBase
     public async Task UpdateEvent_Negative_NotFound()
     {
         //Arrange
-        var expectedExceptionMessage = $"Event {_eventIdToUpdate} is not found";
+        var expectedExceptionMessage = $"{nameof(Event)} {_eventIdToUpdate} is not found";
 
         EventRepositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Guid>(), 
                                                                      It.IsAny<Event>(), 
                                                                      It.IsAny<CancellationToken>()))
-                           .Throws(new EventNotFoundException(_eventIdToUpdate));
+                           .Throws(new EntityNotFoundException(nameof(Event), _eventIdToUpdate));
 
         //Act
         var action = async () => await EventService.UpdateEventAsync(_eventIdToUpdate, _newEventData);
 
         //Assert
-        await action.Should().ThrowAsync<EventNotFoundException>().WithMessage(expectedExceptionMessage);
+        await action.Should().ThrowAsync<EntityNotFoundException>().WithMessage(expectedExceptionMessage);
     }
 
     [Theory]

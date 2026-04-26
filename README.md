@@ -7,6 +7,8 @@ Small ASP.NET Core Web API - Events Manager. Education project - performs only C
 - POST /events — создать событие
 - PUT /events/{id} — обновить событие
 - DELETE /events/{id} — удалить событие
+- POST /events/{id}/book — создать бронирование события (асинхронная обработка)
+- GET /bookings/{id} — получить бронирование по id
 
 ### GET /events - фильтрация и пагинация
 Поддерживаемые query-параметры:
@@ -24,6 +26,19 @@ Small ASP.NET Core Web API - Events Manager. Education project - performs only C
 - `GET /events?title=meetup`
 - `GET /events?from=2026-01-01&to=2026-01-31`
 - `GET /events?title=workshop&page=2&pageSize=5`
+
+### POST /events/{id}/book
+Создает бронирование для события и помещает его в очередь фоновой обработки.
+
+- Если событие не найдено: `404 Not Found`
+- Если бронирование принято в обработку: `202 Accepted`
+- В ответе возвращается созданный `Booking` со статусом `Pending`
+
+### GET /bookings/{id}
+Возвращает текущее состояние бронирования.
+
+- Если бронирование не найдено: `404 Not Found`
+- При успехе: `200 OK`
 
 ## Error response format
 При ошибках API возвращает объект формата:
@@ -61,6 +76,44 @@ Small ASP.NET Core Web API - Events Manager. Education project - performs only C
   "message": "Exception occured. See Error Details"
 }
 ```
+
+## Booking model
+`Booking` описывает бронирование события и содержит:
+
+- `id` (`Guid`) — идентификатор бронирования
+- `eventId` (`Guid`) — идентификатор события
+- `status` (`BookingStatus`) — текущий статус обработки
+- `createdAt` (`DateTime`) — время создания бронирования (UTC)
+- `processedAt` (`DateTime?`) — время завершения обработки (UTC), `null` пока не обработано
+
+Статусы `BookingStatus`:
+
+- `Pending` — заявка создана и ожидает обработки
+- `Confirmed` — заявка успешно подтверждена фоновой обработкой
+- `Rejected` — заявка отклонена 
+
+## Логика фоновой обработки бронирований
+После `POST /events/{id}/book` бронирование не подтверждается мгновенно.
+API кладет заявку в in-memory очередь, затем фоновый воркер (`BookingBackgroundService`) обрабатывает ее:
+
+1. Забирает следующий `Booking` из очереди
+2. Имитирует асинхронную обработку (небольшая задержка)
+3. Обновляет статус бронирования на `Confirmed`
+4. Проставляет `processedAt`
+
+Таким образом, `POST /events/{id}/book` возвращает быстрый `202 Accepted`, а итоговый статус нужно проверять через `GET /bookings/{id}`.
+
+## Пример использования сценария бронирований
+1. Создать событие:
+   - `POST /events`
+2. Получить `id` созданного события из ответа
+3. Создать бронирование:
+   - `POST /events/{id}/book`
+4. Получить `bookingId` из ответа (`status = Pending`)
+5. Через несколько секунд проверить статус:
+   - `GET /bookings/{bookingId}`
+6. Ожидаемый результат после обработки:
+   - `status = Confirmed`, `processedAt != null`
 
 ## Run
 ```bash

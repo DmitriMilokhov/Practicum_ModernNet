@@ -1,15 +1,17 @@
 ﻿using EventManager.Features.Bookings.Interfaces;
 using EventManager.Features.Bookings.Model;
 using EventManager.Infrastructure.Exceptions;
+using System.Collections.Concurrent;
 
 namespace EventManager.Features.Bookings;
 
 public class InMemoryBookingRepository : IBookingRepository
 {
-    private readonly List<Booking> _bookings = [];
+    private readonly ConcurrentDictionary<Guid, Booking> _bookings = [];
+
     public Task AddAsync(Booking bookingModel, CancellationToken ct = default)
     {
-        _bookings.Add(bookingModel);
+        _bookings.TryAdd(bookingModel.Id, bookingModel);
         return Task.CompletedTask;
     }
 
@@ -20,9 +22,7 @@ public class InMemoryBookingRepository : IBookingRepository
 
     private Booking TryGetBooking(Guid id)
     {
-        var result = _bookings.FirstOrDefault(e => e.Id == id);
-
-        if (result == null)
+        if (!_bookings.TryGetValue(id, out var result))
         {
             throw new EntityNotFoundException(nameof(Booking), id);
         }

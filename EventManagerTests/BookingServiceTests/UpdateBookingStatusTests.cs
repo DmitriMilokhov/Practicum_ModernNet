@@ -10,14 +10,14 @@ namespace EventManagerTests.BookingServiceTests;
 
 public class UpdateBookingStatusTests : BookingServiceTestsBase
 {
-    [Fact]
-    public async Task UpdateBookingStatusTests_Positive()
+    [Theory]
+    [InlineData(BookingStatus.Confirmed)]
+    [InlineData(BookingStatus.Rejected)]
+    public async Task UpdateBookingStatusTests_Positive(BookingStatus updatedBookingStatus)
     {
         //Arrange
         var notUpdatedBooking = BookingFactory.CreateBookingDto(Guid.NewGuid()).ToEntity();
         var updatedBooking = BookingFactory.CreateBookingDto(Guid.NewGuid()).ToEntity();
-        var updatedBookingStatus = BookingStatus.Confirmed;
-
 
         BookingRepositoryMock.Setup(r => r.GetAsync(updatedBooking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(updatedBooking);

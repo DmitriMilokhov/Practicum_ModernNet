@@ -4,14 +4,7 @@ public static class BookingMapper
 {
     public static Booking ToEntity(this BookingDto dto)
     {
-        return new Booking
-        {
-            Id = dto.Id,
-            EventId = dto.EventId,
-            Status = dto.Status,
-            CreatedAt = dto.CreatedAt!.Value,
-            ProcessedAt = dto.ProcessedAt
-        };
+        return new Booking(dto.Id, dto.EventId, dto.Status, dto.CreatedAt!.Value);
     }
 
     public static BookingDto ToDto(this Booking entity)

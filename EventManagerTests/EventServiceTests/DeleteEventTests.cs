@@ -1,4 +1,5 @@
-﻿using EventManager.Infrastructure.Exceptions;
+﻿using EventManager.Features.Events.Model;
+using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
 using Moq;
 
@@ -14,28 +15,28 @@ public class DeleteEventTests : EventServiceTestsBase
     }
 
     [Fact]
-    public void DeleteEvent_Positive()
+    public async Task DeleteEvent_Positive()
     {
         //Act
-        EventService.DeleteEvent(_eventIdToUpdate);
+        await EventService.DeleteEventAsync(_eventIdToUpdate);
 
         //Assert
-        EventRepositoryMock.Verify(r => r.Delete(_eventIdToUpdate));
+        EventRepositoryMock.Verify(r => r.DeleteAsync(_eventIdToUpdate, It.IsAny<CancellationToken>()));
     }
 
     [Fact]
-    public void DeleteEvent_Negative_NotFound()
+    public async Task DeleteEvent_Negative_NotFound()
     {
         //Arrange
-        var expectedExceptionMessage = $"Event {_eventIdToUpdate} is not found";
+        var expectedExceptionMessage = $"{nameof(Event)} {_eventIdToUpdate} is not found";
 
-        EventRepositoryMock.Setup(r => r.Delete(It.IsAny<Guid>()))
-                           .Throws(new EventNotFoundException(_eventIdToUpdate));
+        EventRepositoryMock.Setup(r => r.DeleteAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                           .Throws(new EntityNotFoundException(nameof(Event), _eventIdToUpdate));
 
         //Act
-        var action = () => EventService.DeleteEvent(_eventIdToUpdate);
+        var action = () => EventService.DeleteEventAsync(_eventIdToUpdate);
 
         //Assert
-        action.Should().Throw<EventNotFoundException>().WithMessage(expectedExceptionMessage);
+        await action.Should().ThrowAsync<EntityNotFoundException>().WithMessage(expectedExceptionMessage);
     }
 }

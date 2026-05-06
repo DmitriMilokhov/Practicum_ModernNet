@@ -1,8 +1,7 @@
-﻿using EventManager.Infrastructure;
-using EventManager.Interfaces.IRepositories;
-using EventManager.Models;
-using EventManager.Models.Filters;
-using EventManager.Services;
+﻿using EventManager.Features.Events;
+using EventManager.Features.Events.Interfaces;
+using EventManager.Features.Events.Model;
+using EventManager.Infrastructure.Constants;
 using Moq;
 
 namespace EventManagerTests.EventServiceTests;
@@ -44,7 +43,7 @@ public abstract class EventServiceTestsBase
                 StartAt = BaseTestStartDate,
                 EndAt = BaseTestEndDate
             },
-            ValidationMessages.TitleIsRequiredMsg
+            Constants.TitleIsRequiredMsg
         ];
 
         yield return [ new EventDto
@@ -54,7 +53,7 @@ public abstract class EventServiceTestsBase
                 StartAt = BaseTestStartDate,
                 EndAt = BaseTestEndDate
             },
-            ValidationMessages.TitleIsRequiredMsg
+            Constants.TitleIsRequiredMsg
         ];
 
         yield return [ new EventDto
@@ -64,7 +63,7 @@ public abstract class EventServiceTestsBase
                 StartAt = BaseTestEndDate,
                 EndAt = BaseTestStartDate
             },
-            ValidationMessages.EndDateLaterThanStartMsg
+            Constants.EndDateLaterThanStartMsg
         ];
     }
 }

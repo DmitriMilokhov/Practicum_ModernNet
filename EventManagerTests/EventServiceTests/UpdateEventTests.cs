@@ -1,5 +1,5 @@
-﻿using EventManager.Infrastructure.Exceptions;
-using EventManager.Models;
+﻿using EventManager.Features.Events.Model;
+using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
 using Moq;
 using System.ComponentModel.DataAnnotations;
@@ -22,43 +22,46 @@ public class UpdateEventTests : EventServiceTestsBase
         _eventIdToUpdate = TestEvents.First().Id;
     }
     [Fact]
-    public void UpdateEvent_Positive()
+    public async Task UpdateEvent_Positive()
     {
         //Act
-        EventService.UpdateEvent(_eventIdToUpdate, _newEventData);
+        await EventService.UpdateEventAsync(_eventIdToUpdate, _newEventData);
 
         //Assert
-        EventRepositoryMock.Verify(r => r.Update(_eventIdToUpdate, It.Is<Event>(e =>
+        EventRepositoryMock.Verify(r => r.UpdateAsync(_eventIdToUpdate, It.Is<Event>(e =>
             e.Title == _newEventData.Title &&
             e.Description == _newEventData.Description &&
             e.StartAt == _newEventData.StartAt &&
-            e.EndAt == _newEventData.EndAt)), Times.Once());
+            e.EndAt == _newEventData.EndAt),
+            It.IsAny<CancellationToken>()), Times.Once());
     }
 
     [Fact]
-    public void UpdateEvent_Negative_NotFound()
+    public async Task UpdateEvent_Negative_NotFound()
     {
         //Arrange
-        var expectedExceptionMessage = $"Event {_eventIdToUpdate} is not found";
+        var expectedExceptionMessage = $"{nameof(Event)} {_eventIdToUpdate} is not found";
 
-        EventRepositoryMock.Setup(r => r.Update(It.IsAny<Guid>(), It.IsAny<Event>()))
-                           .Throws(new EventNotFoundException(_eventIdToUpdate));
+        EventRepositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Guid>(), 
+                                                                     It.IsAny<Event>(), 
+                                                                     It.IsAny<CancellationToken>()))
+                           .Throws(new EntityNotFoundException(nameof(Event), _eventIdToUpdate));
 
         //Act
-        var action = () => EventService.UpdateEvent(_eventIdToUpdate, _newEventData);
+        var action = async () => await EventService.UpdateEventAsync(_eventIdToUpdate, _newEventData);
 
         //Assert
-        action.Should().Throw<EventNotFoundException>().WithMessage(expectedExceptionMessage);
+        await action.Should().ThrowAsync<EntityNotFoundException>().WithMessage(expectedExceptionMessage);
     }
 
     [Theory]
     [MemberData(nameof(GetValidationTestData))]
-    public void UpdateEvent_Negative_ValidationErrors(EventDto eventDto, string expectedExceptionMessage)
+    public async Task UpdateEvent_Negative_ValidationErrors(EventDto eventDto, string expectedExceptionMessage)
     {
         //Act
-        var action = () => EventService.UpdateEvent(_eventIdToUpdate, eventDto);
+        var action = async () => await EventService.UpdateEventAsync(_eventIdToUpdate, eventDto);
 
         //Assert
-        action.Should().Throw<ValidationException>().WithMessage(expectedExceptionMessage);
+        await action.Should().ThrowAsync<ValidationException>().WithMessage(expectedExceptionMessage);
     }
 }

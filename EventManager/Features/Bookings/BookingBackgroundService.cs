@@ -11,31 +11,34 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
     {
         logger.LogInformation("Booking background service is launched");
 
-        while (!stoppingToken.IsCancellationRequested)
+        await foreach (var booking in bookingQueue.ReadAllAsync(stoppingToken))
         {
+            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeoutCts.Token);
+
             try
             {
-                if (bookingQueue.TryDequeue(out var booking))
-                {
-                    logger.LogInformation("Booking for event {eventId} has been started", booking.EventId);
+                logger.LogInformation("Booking for event {eventId} has been started", booking.EventId);
 
-                    var bookingResult = await BookStubAsync(stoppingToken);
+                //here should be real Booking logic
+                await Task.Delay(TimeSpan.FromSeconds(2), combinedCts.Token);
 
-                    using var scope = provider.CreateScope();
-                    var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+                await SetBookingStatus(booking.Id, BookingStatus.Confirmed, combinedCts.Token);
 
-                    var status = bookingResult ? BookingStatus.Confirmed : BookingStatus.Rejected;
-                    await bookingService.UpdateBookingStatusAsync(booking.Id, status, stoppingToken);
-
-                    logger.LogInformation("Booking for event {eventId} has been finished", booking.EventId);
-                }
+                logger.LogInformation("Booking for event {eventId} has been finished", booking.EventId);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 break;
             }
+            catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
+            {
+                await SetBookingStatus(booking.Id, BookingStatus.Rejected, combinedCts.Token);
+                logger.LogWarning("Event Booking Time-out. Booking id: {id}", booking.EventId);
+            }
             catch (Exception ex)
             {
+                await SetBookingStatus(booking.Id, BookingStatus.Rejected, combinedCts.Token);
                 logger.LogError(ex, "Error during event booking");
             }
 
@@ -45,17 +48,11 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
         logger.LogInformation("Booking background service is stopped");
     }
 
-    private async Task<bool> BookStubAsync(CancellationToken ct)
+    private async Task SetBookingStatus(Guid bookingId, BookingStatus status, CancellationToken ct)
     {
-        try 
-        {
-            //here should be real Booking logic, that should return some API result which can be used instead this bool method
-            await Task.Delay(TimeSpan.FromSeconds(2), ct);
-            return true;
-        }
-        catch
-        {  
-            return false; 
-        }
+        using var scope = provider.CreateScope();
+        var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+
+        await bookingService.UpdateBookingStatusAsync(bookingId, status, ct);
     }
 }

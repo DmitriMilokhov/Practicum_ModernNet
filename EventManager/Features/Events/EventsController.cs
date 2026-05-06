@@ -138,7 +138,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     public async Task<ActionResult<ApiResult>> BookAsync(Guid id, CancellationToken ct = default)
     {
         var bookingDto = await bookingService.CreateBookingAsync(id, ct);
-        bookingQueue.Enqueue(bookingDto);
+        await bookingQueue.EnqueueAsync(bookingDto, ct);
 
         return AcceptedAtRoute(Constants.GetBookingIdRoute, new { bookingId = bookingDto.Id }, 
             new ApiResult<BookingDto>

@@ -1,13 +1,16 @@
 ﻿using EventManager.Features.Bookings.Interfaces;
 using EventManager.Features.Bookings.Model;
 using EventManager.Features.Events.Interfaces;
+using EventManager.Infrastructure.Constants;
 using EventManager.Infrastructure.Exceptions;
+using System.Collections.Concurrent;
 
 namespace EventManager.Features.Bookings;
 
 public class BookingService(IBookingFactory bookingFactory,
     IBookingRepository bookingRepository, IEventRepository eventRepository) : IBookingService
 {
+    private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _locks = new();
     public async Task<BookingDto> CreateBookingAsync(Guid eventId, CancellationToken ct = default)
     {
         var isEventExist = await eventRepository.ExistsAsync(eventId, ct);
@@ -16,10 +19,30 @@ public class BookingService(IBookingFactory bookingFactory,
             throw new EntityNotFoundException("Event", eventId);
         }
 
-        var bookingDto = bookingFactory.CreateBookingDto(eventId);
-        await bookingRepository.AddAsync(bookingDto.ToEntity(), ct);
+        var bookingEventSemaphore = _locks.GetOrAdd(
+            eventId,
+            _ => new SemaphoreSlim(1, 1));
 
-        return bookingDto;
+        await bookingEventSemaphore.WaitAsync(ct);
+
+        try
+        {
+            var eventForBooking = await eventRepository.GetAsync(eventId, ct);
+            var reserved = eventForBooking.TryReserveSeats();
+            if (!reserved)
+            {
+                throw new NoAvailableSeatsException(Constants.NoAvailableSeatsExceptionMsg);
+            }
+
+            var bookingDto = bookingFactory.CreateBookingDto(eventId);
+            await bookingRepository.AddAsync(bookingDto.ToEntity(), ct);
+
+            return bookingDto;
+        }
+        finally
+        {
+            bookingEventSemaphore.Release();
+        }
     }
 
     public async Task<BookingDto> GetBookingByIdAsync(Guid bookingId, CancellationToken ct = default)

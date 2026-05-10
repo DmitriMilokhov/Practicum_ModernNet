@@ -58,15 +58,14 @@ public class Event
         return true;
     }
 
-    public bool TryReleaseSeats(int count = 1)
+    public void ReleaseSeats(int count = 1)
     {
         if (TotalSeats < count + AvailableSeats)
         {
-            return false;
+            AvailableSeats = TotalSeats;
         }
 
         AvailableSeats += count;
-        return true;
     }
 
     private static void Validate(string title, DateTime startAt, DateTime endAt, int totalSeats)

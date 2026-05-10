@@ -10,6 +10,7 @@ namespace EventManager.Features.Bookings;
 public class BookingService(IBookingFactory bookingFactory,
     IBookingRepository bookingRepository, IEventRepository eventRepository) : IBookingService
 {
+    //COMMENT FOR REVIEWER: использую отдельный семафор для отдельного события, вместо Lock. Так как мой репозиторий уже асинхронные методы
     private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _locks = new();
     public async Task<BookingDto> CreateBookingAsync(Guid eventId, CancellationToken ct = default)
     {

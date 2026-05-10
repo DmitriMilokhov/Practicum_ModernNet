@@ -1,16 +1,17 @@
 ﻿using EventManager.Features.Events.Interfaces;
 using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Exceptions;
+using System.Collections.Concurrent;
 
 namespace EventManager.Features.Events;
 
 public class InMemoryEventRepository : IEventRepository
 {
-    private readonly List<Event> _events = [];
+    private readonly ConcurrentDictionary<Guid, Event> _events = [];
 
     public Task<IReadOnlyList<Event>> GetAllAsync(CancellationToken ct = default)
     {
-        return Task.FromResult<IReadOnlyList<Event>>([.. _events]);
+        return Task.FromResult<IReadOnlyList<Event>>([.. _events.Values]);
     }
 
     public Task<Event> GetAsync(Guid id, CancellationToken ct = default)
@@ -20,35 +21,35 @@ public class InMemoryEventRepository : IEventRepository
 
     public Task<bool> ExistsAsync(Guid id, CancellationToken ct = default)
     {
-        var isEventExist = _events.Any(e => e.Id == id);
+        var isEventExist = _events.ContainsKey(id);
         return Task.FromResult(isEventExist);
     }
 
     public Task AddAsync(Event eventModel, CancellationToken ct = default)
     {
-        _events.Add(eventModel);
+        _events.TryAdd(eventModel.Id, eventModel);
         return Task.CompletedTask;
     }
 
     public Task UpdateAsync(Guid eventId, Event data, CancellationToken ct = default)
     {
         var result = TryGetEvent(eventId);
-        result.Update(data.Title, data.Description, data.StartAt, data.EndAt);
+        result.Update(data.Title, data.Description, data.StartAt, data.EndAt, data.TotalSeats);
         return Task.CompletedTask;
     }
 
     public Task DeleteAsync(Guid eventId, CancellationToken ct = default)
     {
-        var result = TryGetEvent(eventId);
-        _events.Remove(result);
+        if (!_events.TryRemove(eventId, out _))
+        {
+            throw new EntityNotFoundException(nameof(Event), eventId);
+        }
         return Task.CompletedTask;
     }
 
     private Event TryGetEvent(Guid id)
     {
-        var result = _events.FirstOrDefault(e => e.Id == id);
-
-        if (result == null)
+        if (!_events.TryGetValue(id, out var result))
         {
             throw new EntityNotFoundException(nameof(Event), id);
         }

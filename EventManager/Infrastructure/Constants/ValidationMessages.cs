@@ -14,4 +14,6 @@ public static partial class Constants
     public const string StartAtIsRequiredMsg = "StartAt is required";
     public const string TitleFilterWithoutSpacesMsg = "Title filter should not contain only white spaces";
     public const string TitleIsRequiredMsg = "Title is required";
+    public const string TotalSeatsAboveZeroMsg = "TotalSeats should be above zero";
+    public const string TotalSeatsIsRequiredMsg = "TotalSeats is required";
 }

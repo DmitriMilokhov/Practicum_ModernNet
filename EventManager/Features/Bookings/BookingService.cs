@@ -1,6 +1,7 @@
 ﻿using EventManager.Features.Bookings.Interfaces;
 using EventManager.Features.Bookings.Model;
 using EventManager.Features.Events.Interfaces;
+using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Constants;
 using EventManager.Infrastructure.Exceptions;
 using System.Collections.Concurrent;
@@ -11,7 +12,8 @@ public class BookingService(IBookingFactory bookingFactory,
     IBookingRepository bookingRepository, IEventRepository eventRepository) : IBookingService
 {
     //COMMENT FOR REVIEWER: использую отдельный семафор для отдельного события, вместо Lock. Так как мой репозиторий уже асинхронные методы
-    private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _locks = new();
+    private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _eventLocks = new();
+
     public async Task<BookingDto> CreateBookingAsync(Guid eventId, CancellationToken ct = default)
     {
         var isEventExist = await eventRepository.ExistsAsync(eventId, ct);
@@ -20,7 +22,7 @@ public class BookingService(IBookingFactory bookingFactory,
             throw new EntityNotFoundException("Event", eventId);
         }
 
-        var bookingEventSemaphore = _locks.GetOrAdd(
+        var bookingEventSemaphore = _eventLocks.GetOrAdd(
             eventId,
             _ => new SemaphoreSlim(1, 1));
 
@@ -52,9 +54,36 @@ public class BookingService(IBookingFactory bookingFactory,
         return bookingEntity.ToDto();
     }
 
-    public async Task UpdateBookingStatusAsync(Guid bookingId, BookingStatus status, CancellationToken ct = default)
+    public async Task ConfirmBooking(Guid bookingId, CancellationToken ct = default)
     {
         var bookingEntity = await bookingRepository.GetAsync(bookingId, ct);
-        bookingEntity.Update(status, DateTime.UtcNow);
+        bookingEntity.Update(BookingStatus.Confirmed, DateTime.UtcNow);
+    }
+
+    public async Task RejectBooking(Guid bookingId, CancellationToken ct = default)
+    {
+        var bookingEntity = await bookingRepository.GetAsync(bookingId, ct);
+        bookingEntity.Update(BookingStatus.Rejected, DateTime.UtcNow);
+    }
+
+    public async Task RejectBookingAndReleaseEvent(Guid bookingId, CancellationToken ct = default)
+    {
+        var bookingEntity = await bookingRepository.GetAsync(bookingId, ct);
+        
+        var bookingEventSemaphore = _eventLocks.GetOrAdd(
+            bookingEntity.EventId,
+            _ => new SemaphoreSlim(1, 1));
+
+        await bookingEventSemaphore.WaitAsync(ct);
+        try
+        {
+            var eventToUpdate = await eventRepository.GetAsync(bookingEntity.EventId, ct);
+            eventToUpdate.ReleaseSeats();
+            bookingEntity.Update(BookingStatus.Rejected, DateTime.UtcNow);
+        }
+        finally
+        {
+            bookingEventSemaphore.Release();
+        }
     }
 }

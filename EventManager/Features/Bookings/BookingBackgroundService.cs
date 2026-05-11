@@ -11,12 +11,10 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
     IEventRepository eventRepository) : BackgroundService
 {
     private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
-    private readonly SemaphoreSlim _rejectedSemaphore = new(1, 1);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Booking background service is launched");
-
         //COMMENT FOR REVIEWER: использую Parallel.ForEachAsync вместо Task.WhenAll, так как хочу оставить очередь на основе Channel
         await Parallel.ForEachAsync(
             bookingQueue.ReadAllAsync(stoppingToken),
@@ -25,22 +23,24 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
         {
             using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
+            using var scope = scopeFactory.CreateScope();
+            var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
 
             try
             {
-                await ProcessBookingAsync(booking, combinedCts.Token);
+                await ProcessBookingAsync(bookingService, booking, combinedCts.Token);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
             }
             catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
             {
-                await SetBookingRejected(booking.Id, booking.EventId, ct);
+                await bookingService.RejectBookingAndReleaseEvent(booking.Id, ct);
                 logger.LogWarning("Event Booking Time-out. Booking id: {id}", booking.Id);
             }
             catch (Exception ex)
             {
-                await SetBookingRejected(booking.Id, booking.EventId, combinedCts.Token);
+                await bookingService.RejectBookingAndReleaseEvent(booking.Id, combinedCts.Token);
                 logger.LogError(ex, "Error during event booking");
             }
 
@@ -50,7 +50,7 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
         logger.LogInformation("Booking background service is stopped");
     }
 
-    private async Task ProcessBookingAsync(BookingDto booking, CancellationToken stoppingToken)
+    private async Task ProcessBookingAsync(IBookingService bookingService, BookingDto booking, CancellationToken stoppingToken)
     {
         logger.LogInformation("Booking for event {eventId} has been started", booking.EventId);
 
@@ -63,14 +63,14 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
             var isEventExist = await eventRepository.ExistsAsync(booking.EventId, stoppingToken);
             if(!isEventExist)
             {
-                await SetBookingStatus(booking.Id, BookingStatus.Rejected, stoppingToken);
+                await bookingService.RejectBooking(booking.Id, stoppingToken);
                 logger.LogWarning("Event Booking Rejected. Event not found. EventId:{eventId}, BookingId: {bookingId}",
                     booking.EventId, booking.Id);
 
                 return;
             }
 
-            await SetBookingStatus(booking.Id, BookingStatus.Confirmed, stoppingToken);
+            await bookingService.ConfirmBooking(booking.Id, stoppingToken);
         }
         finally
         {
@@ -79,30 +79,4 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
 
         logger.LogInformation("Booking for event {eventId} has been finished", booking.EventId);
     }
-
-
-    private async Task SetBookingRejected(Guid bookingId, Guid eventId, CancellationToken ct)
-    {
-        await _rejectedSemaphore.WaitAsync(ct);
-        try 
-        {
-            var eventToUpdate = await eventRepository.GetAsync(eventId, ct);
-            eventToUpdate.ReleaseSeats();
-            await SetBookingStatus(bookingId, BookingStatus.Rejected, ct);
-        }
-        finally
-        {
-            _rejectedSemaphore.Release();
-        }
-    }
-
-    private async Task SetBookingStatus(Guid bookingId, BookingStatus status, CancellationToken ct)
-    {
-        using var scope = scopeFactory.CreateScope();
-        var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
-
-        await bookingService.UpdateBookingStatusAsync(bookingId, status, ct);
-    }
-
-    
 }

@@ -13,7 +13,7 @@ public class Event
     public int TotalSeats { get; private set; }
     public int AvailableSeats { get; private set; }
 
-    public Event(Guid id, 
+    public Event( 
         string title, 
         string? description, 
         DateTime startAt, 
@@ -22,7 +22,7 @@ public class Event
     {
         Validate(title, startAt, endAt, totalSeats);
 
-        Id = id;
+        Id = Guid.NewGuid();
         Title = title;
         Description = description;
         StartAt = startAt;

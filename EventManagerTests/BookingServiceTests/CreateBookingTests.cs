@@ -1,9 +1,12 @@
 ﻿using EventManager.Features.Bookings.Model;
 using EventManager.Features.Events;
+using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using System;
+using EventManager.Infrastructure.Constants;
 
 namespace EventManagerTests.BookingServiceTests;
 
@@ -13,10 +16,17 @@ public class CreateBookingTests : BookingServiceTestsBase
     public async Task CreateBooking_Positive()
     {
         //Arrange
-        var eventId = Guid.NewGuid();
+        var someEvent = new Event(
+            "testEvent",
+            "descr",
+            new DateTime(2026, 05, 20),
+            new DateTime(2026, 06, 20),
+            100);
+        var eventId = someEvent.Id;
         var bookingDto = BookingFactory.CreateBookingDto(eventId);
 
         EventRepositoryMock.Setup(r => r.ExistsAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        EventRepositoryMock.Setup(r => r.GetAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(someEvent);
         BookingFactoryMock.Setup(f => f.CreateBookingDto(eventId)).Returns(bookingDto);
 
         //Act
@@ -36,20 +46,25 @@ public class CreateBookingTests : BookingServiceTestsBase
         result.Id.Should().NotBe(Guid.Empty);
         result.Status.Should().Be(BookingStatus.Pending);
         result.Should().BeEquivalentTo(bookingDto);
+
+        someEvent.AvailableSeats.Should().Be(someEvent.TotalSeats - 1);
     }
 
     [Fact]
     public async Task CreateBooking_Positive_SeveralBookingsForOneEvent()
     {
         //Arrange
-        var eventId = Guid.NewGuid();
-        var bookingDtoFirstCall = BookingFactory.CreateBookingDto(eventId);
-        var bookingDtoSecondCall = BookingFactory.CreateBookingDto(eventId);
+        var someEvent = new Event(
+            "testEvent",
+            "descr",
+            new DateTime(2026, 05, 20),
+            new DateTime(2026, 06, 20),
+            2);
+        var eventId = someEvent.Id;
 
         EventRepositoryMock.Setup(r => r.ExistsAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
-        BookingFactoryMock.SetupSequence(f => f.CreateBookingDto(eventId))
-            .Returns(bookingDtoFirstCall)
-            .Returns(bookingDtoSecondCall);
+        EventRepositoryMock.Setup(r => r.GetAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(someEvent);
+        BookingFactoryMock.Setup(f => f.CreateBookingDto(eventId)).Returns(() => BookingFactory.CreateBookingDto(eventId));
 
         //Act
         var firstBookingResult = await BookingService.CreateBookingAsync(eventId);
@@ -75,8 +90,38 @@ public class CreateBookingTests : BookingServiceTestsBase
 
         //Act
         var action = async () => await BookingService.CreateBookingAsync(eventId);
-        
+
         //Assert
         await action.Should().ThrowAsync<EntityNotFoundException>().WithMessage(expectedExceptionMessage);
+    }
+
+    [Fact]
+    public async Task CreateBooking_Negative_NoAvailableSeats()
+    {
+        //Arrange
+        var totalSeats = 3;
+        var someEvent = new Event(
+            "testEvent",
+            "descr",
+            new DateTime(2026, 05, 20),
+            new DateTime(2026, 06, 20),
+            totalSeats);
+        var eventId = someEvent.Id;
+
+        EventRepositoryMock.Setup(r => r.ExistsAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        EventRepositoryMock.Setup(r => r.GetAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(someEvent);
+        BookingFactoryMock.Setup(f => f.CreateBookingDto(eventId)).Returns(() => BookingFactory.CreateBookingDto(eventId));
+
+        //Act
+        var action = async () => 
+        {
+            for (var i = 0; i < totalSeats + 1; i++)
+            {
+                await BookingService.CreateBookingAsync(eventId);
+            }
+        };
+
+        //Assert
+        await action.Should().ThrowAsync<NoAvailableSeatsException>().WithMessage(Constants.NoAvailableSeatsExceptionMsg);
     }
 }

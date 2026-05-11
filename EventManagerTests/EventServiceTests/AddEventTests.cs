@@ -16,7 +16,8 @@ public class AddEventTests : EventServiceTestsBase
             Title = "Some new event",
             Description = "I am new",
             StartAt = BaseTestStartDate,
-            EndAt = BaseTestEndDate
+            EndAt = BaseTestEndDate,
+            TotalSeats = BaseTotalSeats
         };
 
         //Act
@@ -31,6 +32,7 @@ public class AddEventTests : EventServiceTestsBase
         result.Should().NotBeNull();
         result.Id.Should().NotBe(Guid.Empty);
         result.Should().BeEquivalentTo(newEventDto);
+        result.AvailableSeats.Should().Be(result.TotalSeats);
     }    
 
     [Theory]

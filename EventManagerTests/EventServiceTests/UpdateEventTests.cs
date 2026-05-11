@@ -15,6 +15,7 @@ public class UpdateEventTests : EventServiceTestsBase
         Description = "Updated Description",
         StartAt = BaseTestStartDate,
         EndAt = BaseTestEndDate,
+        TotalSeats = BaseTotalSeats
     };
 
     public UpdateEventTests()

@@ -60,12 +60,7 @@ public class Event
 
     public void ReleaseSeats(int count = 1)
     {
-        if (TotalSeats < count + AvailableSeats)
-        {
-            AvailableSeats = TotalSeats;
-        }
-
-        AvailableSeats += count;
+        AvailableSeats = Math.Min(TotalSeats, AvailableSeats + count);
     }
 
     private static void Validate(string title, DateTime startAt, DateTime endAt, int totalSeats)

@@ -14,9 +14,14 @@ public abstract class BookingServiceTestsBase
 
     protected readonly BookingFactory BookingFactory = new();
     protected readonly BookingService BookingService;
+    protected readonly IEventBookingLockProvider EventBookingLockProvider = new EventBookingLockProvider();
 
     protected BookingServiceTestsBase()
     {
-        BookingService = new BookingService(BookingFactoryMock.Object, BookingRepositoryMock.Object, EventRepositoryMock.Object);
+        BookingService = new BookingService(
+            BookingFactoryMock.Object,
+            BookingRepositoryMock.Object,
+            EventRepositoryMock.Object,
+            EventBookingLockProvider);
     }
 }

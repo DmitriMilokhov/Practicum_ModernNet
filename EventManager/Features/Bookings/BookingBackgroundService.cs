@@ -10,12 +10,15 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
     IServiceScopeFactory scopeFactory,
     IEventRepository eventRepository) : BackgroundService
 {
-    private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Booking background service is launched");
-        //COMMENT FOR REVIEWER: использую Parallel.ForEachAsync вместо Task.WhenAll, так как хочу оставить очередь на основе Channel
+
+        //FOR_REVIEWER: 
+        //1. Осознанно убрал отсюда глобальный семафор (в последнем коммите), т.к. сделал синхронизацию по событию
+        //(см. CreateBookingAsync, RejectBookingAndReleaseEvent в сервсие)
+        //В противном случае синхронизация по событию невилируется этим глобальным семафором.
+        //2. Использую Parallel.ForEachAsync вместо Task.WhenAll так как хочу оставить очередь на основе Channel
         await Parallel.ForEachAsync(
             bookingQueue.ReadAllAsync(stoppingToken),
             new ParallelOptions { MaxDegreeOfParallelism = 4, CancellationToken = stoppingToken },
@@ -36,12 +39,14 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
             catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
             {
                 await bookingService.RejectBookingAndReleaseEvent(booking.Id, ct);
-                logger.LogWarning("Event Booking Time-out. Booking id: {id}", booking.Id);
+                logger.LogWarning("Event Booking Time-out. BookingId: {bookingId}, EventId: {eventId}", 
+                    booking.Id, booking.EventId);
             }
             catch (Exception ex)
             {
-                await bookingService.RejectBookingAndReleaseEvent(booking.Id, combinedCts.Token);
-                logger.LogError(ex, "Error during event booking");
+                await bookingService.RejectBookingAndReleaseEvent(booking.Id, ct);
+                logger.LogError(ex, "Error during event booking. BookingId: {bookingId}, EventId: {eventId}", 
+                    booking.Id, booking.EventId);
             }
 
             await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
@@ -52,31 +57,23 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
 
     private async Task ProcessBookingAsync(IBookingService bookingService, BookingDto booking, CancellationToken stoppingToken)
     {
-        logger.LogInformation("Booking for event {eventId} has been started", booking.EventId);
+        logger.LogInformation("Booking {bookingId} for event {eventId} has been started", booking.Id, booking.EventId);
 
         //here should be real Booking logic
         await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
 
-        await _processingSemaphore.WaitAsync(stoppingToken);
-        try
+        var isEventExist = await eventRepository.ExistsAsync(booking.EventId, stoppingToken);
+        if(!isEventExist)
         {
-            var isEventExist = await eventRepository.ExistsAsync(booking.EventId, stoppingToken);
-            if(!isEventExist)
-            {
-                await bookingService.RejectBooking(booking.Id, stoppingToken);
-                logger.LogWarning("Event Booking Rejected. Event not found. EventId:{eventId}, BookingId: {bookingId}",
-                    booking.EventId, booking.Id);
+            await bookingService.RejectBooking(booking.Id, stoppingToken);
+            logger.LogWarning("Event Booking Rejected. Event not found. BookingId: {bookingId}, EventId:{eventId},",
+               booking.Id, booking.EventId);
 
-                return;
-            }
-
-            await bookingService.ConfirmBooking(booking.Id, stoppingToken);
-        }
-        finally
-        {
-            _processingSemaphore.Release();
+            return;
         }
 
-        logger.LogInformation("Booking for event {eventId} has been finished", booking.EventId);
+        await bookingService.ConfirmBooking(booking.Id, stoppingToken);
+
+        logger.LogInformation("Booking {bookingId} for event {eventId} has been successfully finished", booking.Id, booking.EventId);
     }
 }

@@ -15,11 +15,19 @@ public class EventDto : IValidatableObject
     [Required(ErrorMessage = Constants.EndAtIsRequiredMsg)]
     public DateTime? EndAt { get; set; }
 
+    [Required(ErrorMessage = Constants.TotalSeatsIsRequiredMsg)]
+    public int TotalSeats { get; set; }
+
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (EndAt <= StartAt)
         {
             yield return new ValidationResult(Constants.EndDateLaterThanStartMsg, [nameof(EndAt)]);
+        }
+
+        if (TotalSeats <= 0)
+        {
+            yield return new ValidationResult(Constants.TotalSeatsAboveZeroMsg, [nameof(TotalSeats)]);
         }
     }
 }
@@ -27,4 +35,5 @@ public class EventDto : IValidatableObject
 public class FullEventDto : EventDto
 {
     public Guid Id { get; init; }
+    public int AvailableSeats { get; set; }
 }

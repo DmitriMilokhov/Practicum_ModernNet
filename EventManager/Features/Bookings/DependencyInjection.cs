@@ -11,7 +11,8 @@ public static class DependencyInjection
     {
         services.AddSingleton<IBookingRepository, InMemoryBookingRepository>();
         services.AddSingleton<ITaskQueue<BookingDto>, InMemoryTaskQueue<BookingDto>>();
-        services.AddSingleton<IBookingFactory, BookingFactory>();  
+        services.AddSingleton<IBookingFactory, BookingFactory>();
+        services.AddSingleton<IEventBookingLockProvider, EventBookingLockProvider>();
         services.AddHostedService<BookingBackgroundService>();
 
         services.AddScoped<IBookingService, BookingService>();

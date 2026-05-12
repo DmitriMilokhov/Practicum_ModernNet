@@ -3,17 +3,13 @@ using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
 using Moq;
-using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace EventManagerTests.BookingServiceTests;
 
-public class UpdateBookingStatusTests : BookingServiceTestsBase
+public class ConfirmBookingTests : BookingServiceTestsBase
 {
-    [Theory]
-    [InlineData(BookingStatus.Confirmed)]
-    [InlineData(BookingStatus.Rejected)]
-    public async Task UpdateBookingStatusTests_Positive(BookingStatus updatedBookingStatus)
+    [Fact]
+    public async Task ConfirmBooking_Positive()
     {
         //Arrange
         var notUpdatedBooking = BookingFactory.CreateBookingDto(Guid.NewGuid()).ToEntity();
@@ -23,7 +19,7 @@ public class UpdateBookingStatusTests : BookingServiceTestsBase
             .ReturnsAsync(updatedBooking);
 
         //Act
-        await BookingService.UpdateBookingStatusAsync(updatedBooking.Id, updatedBookingStatus);
+        await BookingService.ConfirmBooking(updatedBooking.Id);
 
         //Assert
         BookingRepositoryMock.Verify(r => r.GetAsync(updatedBooking.Id, It.IsAny<CancellationToken>()),
@@ -32,12 +28,12 @@ public class UpdateBookingStatusTests : BookingServiceTestsBase
         notUpdatedBooking.Status.Should().Be(BookingStatus.Pending);
         notUpdatedBooking.ProcessedAt.Should().BeNull();
 
-        updatedBooking.Status.Should().Be(updatedBookingStatus);
+        updatedBooking.Status.Should().Be(BookingStatus.Confirmed);
         updatedBooking.ProcessedAt.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task UpdateBookingStatusTests_Negative()
+    public async Task ConfirmBooking_Negative()
     {
         //Arrange
         var randomGuid = Guid.NewGuid();
@@ -47,7 +43,7 @@ public class UpdateBookingStatusTests : BookingServiceTestsBase
             .Throws(new EntityNotFoundException(nameof(Booking), randomGuid));
 
         //Act
-        var action = async () => await BookingService.UpdateBookingStatusAsync(randomGuid, BookingStatus.Confirmed);
+        var action = async () => await BookingService.ConfirmBooking(randomGuid);
 
         //Assert
         await action.Should().ThrowAsync<EntityNotFoundException>().WithMessage(expectedExceptionMessage);

@@ -131,14 +131,16 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <param name="ct">(optional) - cancellation token</param>
     /// <response code="202">Returns JSON ApiResult with accepted status</response>
     /// <response code="404">Returns JSON ApiErrorResult with corresponding message if event not found</response>
+    /// <response code="409">Returns JSON ApiErrorResult with corresponding message if there are no available seats for an event</response>
     [HttpPost("{id:guid}/book")]
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status202Accepted)]
     [ProducesResponseType(typeof(ApiErrorResult), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorResult), StatusCodes.Status409Conflict)]
     [Produces("application/json")]
     public async Task<ActionResult<ApiResult>> BookAsync(Guid id, CancellationToken ct = default)
     {
         var bookingDto = await bookingService.CreateBookingAsync(id, ct);
-        bookingQueue.Enqueue(bookingDto);
+        await bookingQueue.EnqueueAsync(bookingDto, ct);
 
         return AcceptedAtRoute(Constants.GetBookingIdRoute, new { bookingId = bookingDto.Id }, 
             new ApiResult<BookingDto>

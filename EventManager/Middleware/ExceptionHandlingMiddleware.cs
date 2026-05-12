@@ -48,6 +48,12 @@ namespace EventManager.Middleware
                         Status = StatusCodes.Status404NotFound,                       
                     },
 
+                    NoAvailableSeatsException nas => new ProblemDetails
+                    {
+                        Detail = nas.Message,
+                        Status = StatusCodes.Status409Conflict,
+                    },
+
                     ValidationException ve => new ProblemDetails
                     {
                         Detail = ve.Message,

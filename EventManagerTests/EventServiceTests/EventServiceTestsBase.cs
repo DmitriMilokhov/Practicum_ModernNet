@@ -10,23 +10,24 @@ public abstract class EventServiceTestsBase
 {
     protected static readonly DateTime BaseTestStartDate = new DateTime(2026, 5, 1);
     protected static readonly DateTime BaseTestEndDate = new(2026, 6, 20);
+    protected static readonly int BaseTotalSeats = 100;
 
     protected readonly Mock<IEventRepository> EventRepositoryMock = new();
     protected readonly EventService EventService;
     
     protected readonly List<Event> TestEvents =
     [
-        new Event(Guid.NewGuid(), "First event", "test", BaseTestStartDate, BaseTestEndDate),
-        new Event(Guid.NewGuid(), "Holiday", "holiday", BaseTestStartDate.AddMonths(-4), BaseTestEndDate),
-        new Event(Guid.NewGuid(), "Event 3", "default", BaseTestStartDate.AddDays(-4), BaseTestEndDate),
-        new Event(Guid.NewGuid(), "Event 4", "default", BaseTestStartDate.AddDays(-5), BaseTestEndDate),
-        new Event(Guid.NewGuid(), "Event 5", "default", BaseTestStartDate.AddDays(-6), BaseTestEndDate),
-        new Event(Guid.NewGuid(), "Event 6", "default", BaseTestStartDate.AddDays(-7), BaseTestEndDate),
-        new Event(Guid.NewGuid(), "Event 7", "default", BaseTestStartDate.AddDays(-8), BaseTestEndDate),
-        new Event(Guid.NewGuid(), "Event 8", "default", BaseTestStartDate.AddYears(-1), BaseTestEndDate),
-        new Event(Guid.NewGuid(), "Event 9", "default", BaseTestStartDate.AddYears(-1), BaseTestStartDate.AddYears(1)),
-        new Event(Guid.NewGuid(), "WhatIsThis", "Not clear", BaseTestStartDate.AddMonths(-2), BaseTestStartDate.AddMonths(2)),
-        new Event(Guid.NewGuid(), "LastEvent", "last", BaseTestStartDate.AddDays(-4), BaseTestEndDate),
+        new Event("First event", "test", BaseTestStartDate, BaseTestEndDate, BaseTotalSeats),
+        new Event("Holiday", "holiday", BaseTestStartDate.AddMonths(-4), BaseTestEndDate, BaseTotalSeats),
+        new Event("Event 3", "default", BaseTestStartDate.AddDays(-4), BaseTestEndDate, BaseTotalSeats),
+        new Event("Event 4", "default", BaseTestStartDate.AddDays(-5), BaseTestEndDate, BaseTotalSeats),
+        new Event("Event 5", "default", BaseTestStartDate.AddDays(-6), BaseTestEndDate, BaseTotalSeats),
+        new Event("Event 6", "default", BaseTestStartDate.AddDays(-7), BaseTestEndDate, BaseTotalSeats),
+        new Event("Event 7", "default", BaseTestStartDate.AddDays(-8), BaseTestEndDate, BaseTotalSeats),
+        new Event("Event 8", "default", BaseTestStartDate.AddYears(-1), BaseTestEndDate, BaseTotalSeats),
+        new Event("Event 9", "default", BaseTestStartDate.AddYears(-1), BaseTestStartDate.AddYears(1), BaseTotalSeats),
+        new Event("WhatIsThis", "Not clear", BaseTestStartDate.AddMonths(-2), BaseTestStartDate.AddMonths(2), BaseTotalSeats),
+        new Event("LastEvent", "last", BaseTestStartDate.AddDays(-4), BaseTestEndDate, BaseTotalSeats),
     ];
 
     protected EventServiceTestsBase()
@@ -41,7 +42,8 @@ public abstract class EventServiceTestsBase
                 Title = "",
                 Description = "I am new",
                 StartAt = BaseTestStartDate,
-                EndAt = BaseTestEndDate
+                EndAt = BaseTestEndDate,
+                TotalSeats = BaseTotalSeats
             },
             Constants.TitleIsRequiredMsg
         ];
@@ -51,7 +53,8 @@ public abstract class EventServiceTestsBase
                 Title = null!,
                 Description = "I am new",
                 StartAt = BaseTestStartDate,
-                EndAt = BaseTestEndDate
+                EndAt = BaseTestEndDate,
+                TotalSeats = BaseTotalSeats
             },
             Constants.TitleIsRequiredMsg
         ];
@@ -61,9 +64,21 @@ public abstract class EventServiceTestsBase
                 Title = "New Event",
                 Description = "I am new",
                 StartAt = BaseTestEndDate,
-                EndAt = BaseTestStartDate
+                EndAt = BaseTestStartDate,
+                TotalSeats = BaseTotalSeats
             },
             Constants.EndDateLaterThanStartMsg
+        ];
+
+        yield return [ new EventDto
+            {
+                Title = "New Event",
+                Description = "I am new",
+                StartAt = BaseTestStartDate,
+                EndAt = BaseTestEndDate,
+                TotalSeats = 0
+            },
+            Constants.TotalSeatsAboveZeroMsg
         ];
     }
 }

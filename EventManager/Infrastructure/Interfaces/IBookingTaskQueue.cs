@@ -1,10 +1,7 @@
-﻿using EventManager.Features.Bookings.Model;
-using System.Diagnostics.CodeAnalysis;
-
-namespace EventManager.Infrastructure.Interfaces;
+﻿namespace EventManager.Infrastructure.Interfaces;
 
 public interface ITaskQueue<T>
 {
-    void Enqueue(T bookingDto);
-    bool TryDequeue([MaybeNullWhen(false)] out T bookingDto);
+    ValueTask EnqueueAsync(T bookingDto, CancellationToken ct = default);
+    IAsyncEnumerable<T> ReadAllAsync(CancellationToken ct = default);
 }

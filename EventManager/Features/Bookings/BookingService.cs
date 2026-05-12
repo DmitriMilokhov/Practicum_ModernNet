@@ -13,16 +13,14 @@ public class BookingService(IBookingFactory bookingFactory,
 {
     public async Task<BookingDto> CreateBookingAsync(Guid eventId, CancellationToken ct = default)
     {
-        var isEventExist = await eventRepository.ExistsAsync(eventId, ct);
-        if (!isEventExist) 
-        {
-            throw new EntityNotFoundException("Event", eventId);
-        }
-
-        //FOR_REVIEWER: осознанно использую синхронизацию по событию через собственный синглтон
-        //(внутри SemaphoreSlim - т.к. вызовы асинхронные
         using (await lockProvider.AcquireAsync(eventId, ct))
         {
+            var isEventExist = await eventRepository.ExistsAsync(eventId, ct);
+            if (!isEventExist)
+            {
+                throw new EntityNotFoundException("Event", eventId);
+            }
+
             var eventForBooking = await eventRepository.GetAsync(eventId, ct);
             var reserved = eventForBooking.TryReserveSeats();
             if (!reserved)

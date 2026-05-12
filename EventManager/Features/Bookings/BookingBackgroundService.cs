@@ -10,21 +10,20 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
     IServiceScopeFactory scopeFactory,
     IEventRepository eventRepository) : BackgroundService
 {
+    private const int BookingProcessingTimeoutSec = 10;
+    private const int BookingStubDelaySec = 2;
+    private const int ParallelismDegree = 4;
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Booking background service is launched");
 
-        //FOR_REVIEWER: 
-        //1. Осознанно убрал отсюда глобальный семафор (в последнем коммите), т.к. сделал синхронизацию по событию
-        //(см. CreateBookingAsync, RejectBookingAndReleaseEvent в сервсие)
-        //В противном случае синхронизация по событию невилируется этим глобальным семафором.
-        //2. Использую Parallel.ForEachAsync вместо Task.WhenAll так как хочу оставить очередь на основе Channel
         await Parallel.ForEachAsync(
             bookingQueue.ReadAllAsync(stoppingToken),
-            new ParallelOptions { MaxDegreeOfParallelism = 4, CancellationToken = stoppingToken },
+            new ParallelOptions { MaxDegreeOfParallelism = ParallelismDegree, CancellationToken = stoppingToken },
             async (booking, ct) =>
         {
-            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(BookingProcessingTimeoutSec));
             using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
             using var scope = scopeFactory.CreateScope();
             var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
@@ -49,7 +48,7 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
                     booking.Id, booking.EventId);
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(BookingStubDelaySec), stoppingToken);
         });
 
         logger.LogInformation("Booking background service is stopped");

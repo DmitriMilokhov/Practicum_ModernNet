@@ -21,7 +21,6 @@ public class BookingConcurrencyTests : BookingServiceTestsBase
             5);
         var eventId = someEvent.Id;
 
-        EventRepositoryMock.Setup(r => r.ExistsAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         EventRepositoryMock.Setup(r => r.GetAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(someEvent);
         BookingFactoryMock.Setup(f => f.CreateBookingDto(eventId)).Returns(() => BookingFactory.CreateBookingDto(eventId));
 
@@ -74,7 +73,6 @@ public class BookingConcurrencyTests : BookingServiceTestsBase
             totalSeats);
         var eventId = someEvent.Id;
 
-        EventRepositoryMock.Setup(r => r.ExistsAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         EventRepositoryMock.Setup(r => r.GetAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(someEvent);
         BookingFactoryMock.Setup(f => f.CreateBookingDto(eventId)).Returns(() => BookingFactory.CreateBookingDto(eventId));
 

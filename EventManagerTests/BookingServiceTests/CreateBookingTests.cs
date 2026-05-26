@@ -25,7 +25,6 @@ public class CreateBookingTests : BookingServiceTestsBase
         var eventId = someEvent.Id;
         var bookingDto = BookingFactory.CreateBookingDto(eventId);
 
-        EventRepositoryMock.Setup(r => r.ExistsAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         EventRepositoryMock.Setup(r => r.GetAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(someEvent);
         BookingFactoryMock.Setup(f => f.CreateBookingDto(eventId)).Returns(bookingDto);
 
@@ -62,7 +61,6 @@ public class CreateBookingTests : BookingServiceTestsBase
             2);
         var eventId = someEvent.Id;
 
-        EventRepositoryMock.Setup(r => r.ExistsAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         EventRepositoryMock.Setup(r => r.GetAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(someEvent);
         BookingFactoryMock.Setup(f => f.CreateBookingDto(eventId)).Returns(() => BookingFactory.CreateBookingDto(eventId));
 
@@ -86,7 +84,7 @@ public class CreateBookingTests : BookingServiceTestsBase
         var eventId = Guid.NewGuid();
         var expectedExceptionMessage = $"Event {eventId} is not found";
 
-        EventRepositoryMock.Setup(r => r.ExistsAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+       // EventRepositoryMock.Setup(r => r.ExistsAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         //Act
         var action = async () => await BookingService.CreateBookingAsync(eventId);
@@ -108,7 +106,6 @@ public class CreateBookingTests : BookingServiceTestsBase
             totalSeats);
         var eventId = someEvent.Id;
 
-        EventRepositoryMock.Setup(r => r.ExistsAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         EventRepositoryMock.Setup(r => r.GetAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(someEvent);
         BookingFactoryMock.Setup(f => f.CreateBookingDto(eventId)).Returns(() => BookingFactory.CreateBookingDto(eventId));
 

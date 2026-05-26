@@ -1,17 +1,22 @@
 using EventManager.Infrastructure.Constants;
 using System.ComponentModel.DataAnnotations;
+using EventManager.Features.Bookings.Model;
 
 namespace EventManager.Features.Events.Model;
 
 public class Event
 {
     public Guid Id { get; init; }
-    public string Title { get; private set; }
+    public string Title { get; private set; } = null!;
     public string? Description { get; private set; }
     public DateTime StartAt { get; private set; }
     public DateTime EndAt { get; private set; }
     public int TotalSeats { get; private set; }
     public int AvailableSeats { get; private set; }
+
+    public List<Booking> Bookings { get; private set; } = null!;
+
+    public Event() {}
 
     public Event( 
         string title, 

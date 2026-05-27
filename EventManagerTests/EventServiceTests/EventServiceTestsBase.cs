@@ -1,19 +1,20 @@
-﻿using EventManager.Features.Events;
+﻿using EventManager.DataAccess;
+using EventManager.Features.Events;
 using EventManager.Features.Events.Interfaces;
 using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Constants;
-using Moq;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EventManagerTests.EventServiceTests;
 
-public abstract class EventServiceTestsBase
+public abstract class EventServiceTestsBase : IDisposable
 {
     protected static readonly DateTime BaseTestStartDate = new DateTime(2026, 5, 1);
     protected static readonly DateTime BaseTestEndDate = new(2026, 6, 20);
     protected static readonly int BaseTotalSeats = 100;
 
-    protected readonly Mock<IEventRepository> EventRepositoryMock = new();
-    protected readonly EventService EventService;
+    protected readonly ServiceProvider ServiceProvider;
     
     protected readonly List<Event> TestEvents =
     [
@@ -29,11 +30,6 @@ public abstract class EventServiceTestsBase
         new Event("WhatIsThis", "Not clear", BaseTestStartDate.AddMonths(-2), BaseTestStartDate.AddMonths(2), BaseTotalSeats),
         new Event("LastEvent", "last", BaseTestStartDate.AddDays(-4), BaseTestEndDate, BaseTotalSeats),
     ];
-
-    protected EventServiceTestsBase()
-    {
-        EventService = new EventService(EventRepositoryMock.Object, new EventFilterValidator());
-    }
 
     public static IEnumerable<object[]> GetValidationTestData()
     {
@@ -81,4 +77,39 @@ public abstract class EventServiceTestsBase
             Constants.TotalSeatsAboveZeroMsg
         ];
     }
+
+    protected EventServiceTestsBase()
+    {
+        var services = new ServiceCollection();
+
+        var dbName = Guid.NewGuid().ToString();
+
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseInMemoryDatabase(dbName));
+
+        services.AddScoped<IEventRepository, EventRepository>();
+        services.AddScoped<IEventFilterValidator, EventFilterValidator>();
+        services.AddScoped<IEventService, EventService>();
+
+        ServiceProvider = services.BuildServiceProvider();
+    }
+
+    protected IServiceScope CreateScope()
+    {
+        return ServiceProvider.CreateScope();
+    }
+
+    protected async Task SeedEventsAsync(AppDbContext dbContext)
+    {
+        await dbContext.Events.AddRangeAsync(TestEvents);
+
+        await dbContext.SaveChangesAsync();
+    }
+
+    public void Dispose()
+    {
+        ServiceProvider.Dispose();
+    }
+
+
 }

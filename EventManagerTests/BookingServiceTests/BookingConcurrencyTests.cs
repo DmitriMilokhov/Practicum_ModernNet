@@ -1,8 +1,12 @@
-﻿using EventManager.Features.Bookings;
+﻿using EventManager.DataAccess;
+using EventManager.Features.Bookings;
+using EventManager.Features.Bookings.Interfaces;
 using EventManager.Features.Bookings.Model;
+using EventManager.Features.Events.Interfaces;
 using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace EventManagerTests.BookingServiceTests;
@@ -12,24 +16,33 @@ public class BookingConcurrencyTests : BookingServiceTestsBase
     [Fact]
     public async Task CreateBooking_Positive_SeveralBookingsForOneEvent()
     {
-        //Arrange
+        // Arrange
+
+        using var setupScope = CreateScope();
+
+        var setupDbContext = setupScope.ServiceProvider.GetRequiredService<AppDbContext>();
+
         var someEvent = new Event(
             "testEvent",
             "descr",
             new DateTime(2026, 05, 20),
             new DateTime(2026, 06, 20),
             5);
-        var eventId = someEvent.Id;
 
-        EventRepositoryMock.Setup(r => r.GetAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(someEvent);
-        BookingFactoryMock.Setup(f => f.CreateBookingDto(eventId)).Returns(() => BookingFactory.CreateBookingDto(eventId));
+        await setupDbContext.Events.AddAsync(someEvent);
+        await setupDbContext.SaveChangesAsync();
+
+        var eventId = someEvent.Id;
 
         var tasks = Enumerable.Range(0, 20)
             .Select(async _ =>
             {
+                using var scope = CreateScope();
+                var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+
                 try
                 {
-                    var result = await BookingService.CreateBookingAsync(eventId);
+                    await bookingService.CreateBookingAsync(eventId);
 
                     return new
                     {
@@ -47,41 +60,51 @@ public class BookingConcurrencyTests : BookingServiceTestsBase
                 }
             });
 
-        //Act
+        // Act
         var results = await Task.WhenAll(tasks);
 
-        //Assert
+        // Assert
 
         results.Count(r => r.Success).Should().Be(5);
 
-        results.Count(r =>
-                r.Exception is NoAvailableSeatsException)
-            .Should()
-            .Be(15);
+        results.Count(r =>  r.Exception is NoAvailableSeatsException).Should().Be(15);
+
+        using var assertScope = CreateScope();
+        var eventRepository = assertScope.ServiceProvider.GetRequiredService<IEventRepository>();
+
+        var updatedEvent = await eventRepository.GetAsync(eventId);
+        updatedEvent.AvailableSeats.Should().Be(0);
     }
 
     [Fact]
     public async Task CreateBooking_Positive_UniqueIds()
     {
-        //Arrange
+        // Arrange
+
+        using var setupScope = CreateScope();
+        var setupDbContext = setupScope.ServiceProvider.GetRequiredService<AppDbContext>();
         var totalSeats = 10;
+
         var someEvent = new Event(
             "testEvent",
             "descr",
             new DateTime(2026, 05, 20),
             new DateTime(2026, 06, 20),
             totalSeats);
+
+        await setupDbContext.Events.AddAsync(someEvent);
+        await setupDbContext.SaveChangesAsync();
+
         var eventId = someEvent.Id;
-
-        EventRepositoryMock.Setup(r => r.GetAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(someEvent);
-        BookingFactoryMock.Setup(f => f.CreateBookingDto(eventId)).Returns(() => BookingFactory.CreateBookingDto(eventId));
-
         var tasks = Enumerable.Range(0, totalSeats)
             .Select(async _ =>
             {
+                using var scope = CreateScope();
+                var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+
                 try
                 {
-                    var result = await BookingService.CreateBookingAsync(eventId);
+                    var result = await bookingService.CreateBookingAsync(eventId);
 
                     return new
                     {
@@ -101,18 +124,25 @@ public class BookingConcurrencyTests : BookingServiceTestsBase
                 }
             });
 
-        //Act
+        // Act
         var results = await Task.WhenAll(tasks);
 
-        //Assert
+        // Assert
 
         results.Count(r => r.Success).Should().Be(totalSeats);
         results.Count(r => !r.Success).Should().Be(0);
+
         results.Where(r => r.Success)
             .Select(r => r.Booking!.Id)
             .Distinct()
             .Count()
             .Should()
             .Be(totalSeats);
+
+        using var assertScope = CreateScope();
+        var eventRepository = assertScope.ServiceProvider.GetRequiredService<IEventRepository>();
+
+        var updatedEvent = await eventRepository.GetAsync(eventId);
+        updatedEvent.AvailableSeats.Should().Be(0);
     }
 }

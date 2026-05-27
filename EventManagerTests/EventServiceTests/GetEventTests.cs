@@ -1,9 +1,9 @@
-﻿using EventManager.Features.Events.Model;
+﻿using EventManager.DataAccess;
+using EventManager.Features.Events.Interfaces;
+using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
-using Moq;
-using System;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EventManagerTests.EventServiceTests;
 
@@ -13,15 +13,15 @@ public class GetEventTests : EventServiceTestsBase
     public async Task GetEvent_Positive()
     {
         //Arrange
+        using var scope = CreateScope();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await SeedEventsAsync(dbContext);
+
         var eventToFind = TestEvents.Last();
-        EventRepositoryMock.Setup(r => r.GetAsync(eventToFind.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(eventToFind);
 
         //Act
-        var result = await EventService.GetEventAsync(eventToFind.Id);
-
-        //Assert
-        EventRepositoryMock.Verify(r => r.GetAsync(eventToFind.Id, It.IsAny<CancellationToken>()), Times.Once());
+        var result = await eventService.GetEventAsync(eventToFind.Id);
 
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(eventToFind, options => options.ExcludingMissingMembers());
@@ -31,14 +31,14 @@ public class GetEventTests : EventServiceTestsBase
     public async Task GetEvent_Negative()
     {
         //Arrange
+        using var scope = CreateScope();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+
         var randomGuid = Guid.NewGuid();
         var expectedExceptionMessage = $"{nameof(Event)} {randomGuid} is not found";
 
-        EventRepositoryMock.Setup(r => r.GetAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .Throws(new EntityNotFoundException(nameof(Event), randomGuid));
-
         //Act
-        var action = async () => await EventService.GetEventAsync(randomGuid);
+        var action = async () => await eventService.GetEventAsync(randomGuid);
 
         //Assert
         await action.Should().ThrowAsync<EntityNotFoundException>().WithMessage(expectedExceptionMessage);

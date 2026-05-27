@@ -16,10 +16,6 @@ public class BookingService(IBookingFactory bookingFactory,
         using (await lockProvider.AcquireAsync(eventId, ct))
         {
             var eventForBooking = await eventRepository.GetAsync(eventId, ct);
-            if (eventForBooking is null)
-            {
-                throw new EntityNotFoundException("Event", eventId);
-            }
 
             var reserved = eventForBooking.TryReserveSeats();
             if (!reserved)

@@ -1,8 +1,9 @@
 ﻿using EventManager.Features.Bookings.Interfaces;
 using EventManager.Features.Bookings.Model;
 using EventManager.Features.Events.Interfaces;
+using EventManager.Features.Events.Model;
+using EventManager.Infrastructure.Exceptions;
 using EventManager.Infrastructure.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace EventManager.Features.Bookings;
 
@@ -63,12 +64,15 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
         //here should be real Booking logic
         await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
 
-        var bookingEvent = await eventRepository.GetAsync(booking.EventId, stoppingToken);
-        if(bookingEvent is null)
+        try
+        {
+            await eventRepository.GetAsync(booking.EventId, stoppingToken);
+        }
+        catch (EntityNotFoundException ex) when (ex.EntityName == nameof(Event))
         {
             await bookingService.RejectBooking(booking.Id, stoppingToken);
             logger.LogWarning("Event Booking Rejected. Event not found. BookingId: {bookingId}, EventId:{eventId},",
-               booking.Id, booking.EventId);
+                booking.Id, booking.EventId);
 
             return;
         }

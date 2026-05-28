@@ -1,19 +1,15 @@
-﻿using EventManager.Features.Events.Model;
+﻿using EventManager.DataAccess;
+using EventManager.Features.Events.Interfaces;
+using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Constants;
 using FluentAssertions;
-using Moq;
+using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel.DataAnnotations;
 
 namespace EventManagerTests.EventServiceTests;
 
 public class GetEventsTests : EventServiceTestsBase
 {
-    public GetEventsTests()
-    {
-        EventRepositoryMock.Setup(mock => mock.GetAllAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestEvents);
-    }
-
     public static IEnumerable<object[]> GetPaginationTestData()
     {
         yield return [new EventFilter(), 2, 10];
@@ -26,6 +22,11 @@ public class GetEventsTests : EventServiceTestsBase
     public async Task GetEvents_Positive_WithPagination(EventFilter filter, int expectedTotalPages, int expectedItemCounts)
     {
         //Arrange
+        using var scope = CreateScope();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await SeedEventsAsync(dbContext);
+        
         var expectedTotalItems = TestEvents.Count;
         var expectedPageItems = TestEvents
             .Skip((filter.Page - 1) * filter.PageSize)
@@ -33,12 +34,10 @@ public class GetEventsTests : EventServiceTestsBase
             .ToList();
 
         //Act
-        var result = await EventService.GetEventsAsync(filter);
+        var result = await eventService.GetEventsAsync(filter);
         var actualPageItems = result.Items.ToList();
 
         //Assert
-        EventRepositoryMock.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once());
-
         result.Should().NotBeNull();
         result.Page.Should().Be(filter.Page);
         result.PageSize.Should().Be(filter.PageSize);
@@ -46,7 +45,7 @@ public class GetEventsTests : EventServiceTestsBase
         result.TotalPages.Should().Be(expectedTotalPages);
 
         actualPageItems.Should().HaveCount(expectedItemCounts);
-        actualPageItems.Should().BeEquivalentTo(expectedPageItems, options => options.ComparingByMembers<FullEventDto>());
+        actualPageItems.Should().BeEquivalentTo(expectedPageItems, options => options.ExcludingMissingMembers());
     }
 
     [Theory]
@@ -56,10 +55,15 @@ public class GetEventsTests : EventServiceTestsBase
     public async Task GetEvents_Positive_TitleFilter(string title, int expectedItemsCount)
     {
         //Arrange
+        using var scope = CreateScope();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await SeedEventsAsync(dbContext);
+
         var filter = new EventFilter { Title = title };
 
         //Act
-        var result = await EventService.GetEventsAsync(filter);
+        var result = await eventService.GetEventsAsync(filter);
 
         //Assert
         result.Should().NotBeNull();
@@ -71,11 +75,16 @@ public class GetEventsTests : EventServiceTestsBase
     public async Task GetEvents_Positive_StartDateFilter()
     {
         //Arrange
+        using var scope = CreateScope();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await SeedEventsAsync(dbContext);
+
         var filter = new EventFilter { From = BaseTestStartDate.AddDays(-6), PageSize = 20 };
         var expectedItemsCount = 5;
 
         //Act
-        var result = await EventService.GetEventsAsync(filter);
+        var result = await eventService.GetEventsAsync(filter);
 
         //Assert
         result.Should().NotBeNull();
@@ -87,11 +96,16 @@ public class GetEventsTests : EventServiceTestsBase
     public async Task GetEvents_Positive_EndDateFilter()
     {
         //Arrange
+        using var scope = CreateScope();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await SeedEventsAsync(dbContext);
+
         var filter = new EventFilter { To = BaseTestEndDate.AddDays(1), PageSize = 20 };
         var expectedItemsCount = 9;
 
         //Act
-        var result = await EventService.GetEventsAsync(filter);
+        var result = await eventService.GetEventsAsync(filter);
 
         //Assert
         result.Should().NotBeNull();
@@ -103,6 +117,11 @@ public class GetEventsTests : EventServiceTestsBase
     public async Task GetEvents_Positive_MixFilter()
     {
         //Arrange
+        using var scope = CreateScope();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await SeedEventsAsync(dbContext);
+
         var filter = new EventFilter
         {
             Title = "Event",
@@ -114,14 +133,14 @@ public class GetEventsTests : EventServiceTestsBase
         var expectedItemsCount = 1;
 
         //Act
-        var result = await EventService.GetEventsAsync(filter);
+        var result = await eventService.GetEventsAsync(filter);
 
         //Assert
         result.Should().NotBeNull();
         result.TotalItems.Should().Be(expectedItemsCount);
-        result.Items.Should().OnlyContain(r => 
-            r.Title.Contains(filter.Title, StringComparison.OrdinalIgnoreCase) 
-            && r.StartAt >= filter.From.Value 
+        result.Items.Should().OnlyContain(r =>
+            r.Title.Contains(filter.Title, StringComparison.OrdinalIgnoreCase)
+            && r.StartAt >= filter.From.Value
             && r.EndAt <= filter.To.Value);
     }
 
@@ -139,8 +158,12 @@ public class GetEventsTests : EventServiceTestsBase
     [MemberData(nameof(GetFilterNegativeTestData))]
     public async Task GetEvents_Negative_ValidationErrors(EventFilter filter, string expectedExceptionMessage)
     {
+        //Arrange
+        using var scope = CreateScope();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+
         //Act
-        var action = async () => await EventService.GetEventsAsync(filter);
+        var action = async () => await eventService.GetEventsAsync(filter);
 
         //Assert
         await action.Should().ThrowAsync<ValidationException>().WithMessage(expectedExceptionMessage);

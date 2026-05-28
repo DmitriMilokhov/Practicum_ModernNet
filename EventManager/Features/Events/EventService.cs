@@ -36,6 +36,7 @@ public class EventService(IEventRepository repository, IEventFilterValidator eve
         var eventEntity = eventModel.ToEntity();
 
         await repository.AddAsync(eventEntity, ct);
+        await repository.SaveChangesAsync(ct);
 
         return eventEntity.ToDto();
     }
@@ -43,11 +44,13 @@ public class EventService(IEventRepository repository, IEventFilterValidator eve
     public async Task DeleteEventAsync(Guid eventId, CancellationToken ct = default)
     {
         await repository.DeleteAsync(eventId, ct);
+        await repository.SaveChangesAsync(ct);
     }
 
     public async Task UpdateEventAsync(Guid eventId, EventDto data, CancellationToken ct = default)
     {
         await repository.UpdateAsync(eventId, data.ToEntity(), ct);
+        await repository.SaveChangesAsync(ct);
     }
 
 }

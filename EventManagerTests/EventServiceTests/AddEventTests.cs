@@ -1,6 +1,7 @@
-﻿using EventManager.Features.Events.Model;
+﻿using EventManager.Features.Events.Interfaces;
+using EventManager.Features.Events.Model;
 using FluentAssertions;
-using Moq;
+using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel.DataAnnotations;
 
 namespace EventManagerTests.EventServiceTests;
@@ -11,6 +12,10 @@ public class AddEventTests : EventServiceTestsBase
     public async Task AddEvent_Positive()
     {
         //Arrange
+        using var scope = CreateScope();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+        var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
+
         var newEventDto = new EventDto()
         {
             Title = "Some new event",
@@ -21,26 +26,28 @@ public class AddEventTests : EventServiceTestsBase
         };
 
         //Act
-        var result = await EventService.AddEventAsync(newEventDto);
+        var result = await eventService.AddEventAsync(newEventDto);
+        await eventRepository.SaveChangesAsync();
+        var savedEvent = await eventRepository.GetAsync(result.Id);
 
         //Assert
-        EventRepositoryMock.Verify(r => r.AddAsync(
-            It.Is<Event>(e => e.Title == newEventDto.Title),
-            It.IsAny<CancellationToken>()),
-            Times.Once());
-
         result.Should().NotBeNull();
-        result.Id.Should().NotBe(Guid.Empty);
-        result.Should().BeEquivalentTo(newEventDto);
-        result.AvailableSeats.Should().Be(result.TotalSeats);
+        savedEvent.Should().NotBeNull();
+        savedEvent.Id.Should().NotBe(Guid.Empty);
+        savedEvent.Should().BeEquivalentTo(newEventDto);
+        savedEvent.AvailableSeats.Should().Be(result.TotalSeats);
     }    
 
     [Theory]
     [MemberData(nameof(GetValidationTestData))]
     public async Task AddEvent_Negative(EventDto eventDto, string expectedExceptionMessage)
     {
+        //Arrange
+        using var scope = CreateScope();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+
         //Act
-        var action = async () => await EventService.AddEventAsync(eventDto);
+        var action = async () => await eventService.AddEventAsync(eventDto);
 
         //Assert
         await action.Should().ThrowAsync<ValidationException>().WithMessage(expectedExceptionMessage);

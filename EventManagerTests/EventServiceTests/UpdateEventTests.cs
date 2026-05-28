@@ -1,6 +1,9 @@
-﻿using EventManager.Features.Events.Model;
+﻿using EventManager.DataAccess;
+using EventManager.Features.Events.Interfaces;
+using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System.ComponentModel.DataAnnotations;
 
@@ -8,7 +11,6 @@ namespace EventManagerTests.EventServiceTests;
 
 public class UpdateEventTests : EventServiceTestsBase
 {
-    private readonly Guid _eventIdToUpdate;
     private readonly EventDto _newEventData = new EventDto
     {
         Title = "Updated Event",
@@ -18,38 +20,40 @@ public class UpdateEventTests : EventServiceTestsBase
         TotalSeats = BaseTotalSeats
     };
 
-    public UpdateEventTests()
-    {
-        _eventIdToUpdate = TestEvents.First().Id;
-    }
     [Fact]
     public async Task UpdateEvent_Positive()
     {
+        //Arrange
+        using var scope = CreateScope();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+        var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await SeedEventsAsync(dbContext);
+
+        var eventToUpdate = dbContext.Events.First();
+
         //Act
-        await EventService.UpdateEventAsync(_eventIdToUpdate, _newEventData);
+        var action = () => eventService.UpdateEventAsync(eventToUpdate.Id, _newEventData);
 
         //Assert
-        EventRepositoryMock.Verify(r => r.UpdateAsync(_eventIdToUpdate, It.Is<Event>(e =>
-            e.Title == _newEventData.Title &&
-            e.Description == _newEventData.Description &&
-            e.StartAt == _newEventData.StartAt &&
-            e.EndAt == _newEventData.EndAt),
-            It.IsAny<CancellationToken>()), Times.Once());
+        await action.Should().NotThrowAsync();
+        await eventRepository.SaveChangesAsync();
+
+        var firstEvent = dbContext.Events.First();
+        firstEvent.Should().BeEquivalentTo(_newEventData, options => options.ExcludingMissingMembers());
     }
 
     [Fact]
     public async Task UpdateEvent_Negative_NotFound()
     {
         //Arrange
-        var expectedExceptionMessage = $"{nameof(Event)} {_eventIdToUpdate} is not found";
-
-        EventRepositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Guid>(), 
-                                                                     It.IsAny<Event>(), 
-                                                                     It.IsAny<CancellationToken>()))
-                           .Throws(new EntityNotFoundException(nameof(Event), _eventIdToUpdate));
+        var someId = Guid.NewGuid();
+        using var scope = CreateScope();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+        var expectedExceptionMessage = $"{nameof(Event)} {someId} is not found";
 
         //Act
-        var action = async () => await EventService.UpdateEventAsync(_eventIdToUpdate, _newEventData);
+        var action = async () => await eventService.UpdateEventAsync(someId, _newEventData);
 
         //Assert
         await action.Should().ThrowAsync<EntityNotFoundException>().WithMessage(expectedExceptionMessage);
@@ -59,8 +63,13 @@ public class UpdateEventTests : EventServiceTestsBase
     [MemberData(nameof(GetValidationTestData))]
     public async Task UpdateEvent_Negative_ValidationErrors(EventDto eventDto, string expectedExceptionMessage)
     {
+        //Arrange
+        var someId = Guid.NewGuid();
+        using var scope = CreateScope();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+
         //Act
-        var action = async () => await EventService.UpdateEventAsync(_eventIdToUpdate, eventDto);
+        var action = async () => await eventService.UpdateEventAsync(someId, eventDto);
 
         //Assert
         await action.Should().ThrowAsync<ValidationException>().WithMessage(expectedExceptionMessage);

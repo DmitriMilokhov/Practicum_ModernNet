@@ -159,6 +159,27 @@ API кладет заявку в in-memory очередь, затем фонов
 Итог: при высокой конкуренции подтверждается только допустимое число бронирований, а лишние запросы корректно отклоняются.
 
 ## Run
+### Требования
+- .NET SDK (проект собирается под `net9.0`)
+- PostgreSQL (для запуска API)
+
+### Настройка строки подключения
+Приложение использует строку подключения из `EventManager/appsettings.json`:
+
+`ConnectionStrings:Default`
+
+Пример (значения можно изменить под вашу локальную БД):
+```json
+{
+  "ConnectionStrings": {
+    "Default": "Host=localhost;Port=5432;Database=eventapi;Username=postgres;Password=postgres"
+  }
+}
+```
+
+### Автосоздание схемы БД
+Схема БД создаётся автоматически при запуске приложения через `EnsureCreated` (миграции не требуются для старта).
+
 ```bash
 cd EventManager
 dotnet restore
@@ -167,6 +188,8 @@ dotnet run --launch-profile https
 ```
 
 ## Run tests
+В тестах используется EF Core `InMemory` provider (`UseInMemoryDatabase`), PostgreSQL для прогона тестов не требуется.
+
 ```bash
 cd EventManagerTests
 dotnet test

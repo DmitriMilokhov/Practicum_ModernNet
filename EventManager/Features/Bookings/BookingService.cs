@@ -15,13 +15,8 @@ public class BookingService(IBookingFactory bookingFactory,
     {
         using (await lockProvider.AcquireAsync(eventId, ct))
         {
-            var isEventExist = await eventRepository.ExistsAsync(eventId, ct);
-            if (!isEventExist)
-            {
-                throw new EntityNotFoundException("Event", eventId);
-            }
-
             var eventForBooking = await eventRepository.GetAsync(eventId, ct);
+
             var reserved = eventForBooking.TryReserveSeats();
             if (!reserved)
             {
@@ -30,6 +25,7 @@ public class BookingService(IBookingFactory bookingFactory,
 
             var bookingDto = bookingFactory.CreateBookingDto(eventId);
             await bookingRepository.AddAsync(bookingDto.ToEntity(), ct);
+            await bookingRepository.SaveChangesAsync(ct);
 
             return bookingDto;
         }
@@ -45,12 +41,16 @@ public class BookingService(IBookingFactory bookingFactory,
     {
         var bookingEntity = await bookingRepository.GetAsync(bookingId, ct);
         bookingEntity.Update(BookingStatus.Confirmed, DateTime.UtcNow);
+
+        await bookingRepository.SaveChangesAsync(ct);
     }
 
     public async Task RejectBooking(Guid bookingId, CancellationToken ct = default)
     {
         var bookingEntity = await bookingRepository.GetAsync(bookingId, ct);
         bookingEntity.Update(BookingStatus.Rejected, DateTime.UtcNow);
+
+        await bookingRepository.SaveChangesAsync(ct);
     }
 
     public async Task RejectBookingAndReleaseEvent(Guid bookingId, CancellationToken ct = default)
@@ -62,6 +62,7 @@ public class BookingService(IBookingFactory bookingFactory,
             var eventToUpdate = await eventRepository.GetAsync(bookingEntity.EventId, ct);
             eventToUpdate.ReleaseSeats();
             bookingEntity.Update(BookingStatus.Rejected, DateTime.UtcNow);
+            await bookingRepository.SaveChangesAsync(ct);
         }
     }
 }

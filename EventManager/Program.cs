@@ -1,7 +1,9 @@
+using EventManager.DataAccess;
 using EventManager.Features.Bookings;
 using EventManager.Features.Events;
 using EventManager.Infrastructure;
 using EventManager.Middleware;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();
@@ -23,6 +25,14 @@ builder.Services.AddInfrastructure();
 
 builder.Logging.AddConsole();
 
+//Db Context
+var connectionString = builder.Configuration.GetConnectionString("Default")
+                       ?? throw new InvalidOperationException("Connection string 'Default' not found");
+builder.Services.AddDbContext<AppDbContext>(options => options
+    .UseNpgsql(connectionString)
+    .LogTo(Console.WriteLine)
+    .EnableDetailedErrors());
+
 //after build
 var app = builder.Build();
 
@@ -37,6 +47,12 @@ if (isDevelopment)
 app.UseRequestLogging();
 app.UseHttpsRedirection();
 app.UseRouting();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+}
 
 app.MapControllers();
 

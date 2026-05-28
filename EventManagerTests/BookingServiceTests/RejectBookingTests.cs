@@ -1,7 +1,10 @@
-﻿using EventManager.Features.Bookings.Model;
+﻿using EventManager.DataAccess;
+using EventManager.Features.Bookings.Interfaces;
+using EventManager.Features.Bookings.Model;
 using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace EventManagerTests.BookingServiceTests;
@@ -13,17 +16,20 @@ public class RejectBookingTests : BookingServiceTestsBase
     {
         //Arrange
         var notUpdatedBooking = BookingFactory.CreateBookingDto(Guid.NewGuid()).ToEntity();
-        var updatedBooking = BookingFactory.CreateBookingDto(Guid.NewGuid()).ToEntity();
+        var booking = BookingFactory.CreateBookingDto(Guid.NewGuid()).ToEntity();
 
-        BookingRepositoryMock.Setup(r => r.GetAsync(updatedBooking.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(updatedBooking);
+        using var scope = CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+        var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
 
         //Act
-        await BookingService.RejectBooking(updatedBooking.Id);
+        await dbContext.Bookings.AddAsync(booking);
+        await dbContext.SaveChangesAsync();
+        await bookingService.RejectBooking(booking.Id);
 
         //Assert
-        BookingRepositoryMock.Verify(r => r.GetAsync(updatedBooking.Id, It.IsAny<CancellationToken>()),
-            Times.Once());
+        var updatedBooking = await bookingRepository.GetAsync(booking.Id);
 
         notUpdatedBooking.Status.Should().Be(BookingStatus.Pending);
         notUpdatedBooking.ProcessedAt.Should().BeNull();
@@ -39,11 +45,11 @@ public class RejectBookingTests : BookingServiceTestsBase
         var randomGuid = Guid.NewGuid();
         var expectedExceptionMessage = $"{nameof(Booking)} {randomGuid} is not found";
 
-        BookingRepositoryMock.Setup(r => r.GetAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .Throws(new EntityNotFoundException(nameof(Booking), randomGuid));
+        using var scope = CreateScope();
+        var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
 
         //Act
-        var action = async () => await BookingService.RejectBooking(randomGuid);
+        var action = async () => await bookingService.RejectBooking(randomGuid);
 
         //Assert
         await action.Should().ThrowAsync<EntityNotFoundException>().WithMessage(expectedExceptionMessage);

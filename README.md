@@ -177,8 +177,26 @@ API кладет заявку в in-memory очередь, затем фонов
 }
 ```
 
-### Автосоздание схемы БД
-Схема БД создаётся автоматически при запуске приложения через `EnsureCreated` (миграции не требуются для старта).
+### Схема БД и миграции EF Core
+Схема базы данных управляется миграциями EF Core. Файлы миграций находятся в `EventManager/Migrations`.
+
+При запуске API неопубликованные миграции применяются автоматически (`db.Database.Migrate()` в `Program.cs`). Для локальной разработки достаточно поднять PostgreSQL и запустить приложение — отдельно применять миграции не обязательно.
+
+Создать новую миграцию после изменения моделей:
+
+```bash
+cd EventManager
+dotnet ef migrations add <MigrationName> --output-dir Migrations
+```
+
+Применить миграции вручную (например, без запуска API):
+
+```bash
+cd EventManager
+dotnet ef database update
+```
+
+Запуск API:
 
 ```bash
 cd EventManager
@@ -187,12 +205,37 @@ dotnet build
 dotnet run --launch-profile https
 ```
 
+> **Примечание.** Если база была создана ранее через `EnsureCreated` (без таблицы `__EFMigrationsHistory`), перед первым запуском с миграциями может потребоваться пересоздать БД или выполнить `dotnet ef database update` на чистой базе.
+
 ## Run tests
-В тестах используется EF Core `InMemory` provider (`UseInMemoryDatabase`), PostgreSQL для прогона тестов не требуется.
+В solution два тестовых проекта:
+
+| Проект | Назначение | База данных |
+|--------|------------|-------------|
+| `EventManagerTests` (`EventManager.UnitTests`) | Unit-тесты сервисов | EF Core InMemory (`UseInMemoryDatabase`) |
+| `EventManager.IntegrationTests` | Integration-тесты репозиториев | PostgreSQL через [Testcontainers](https://dotnet.testcontainers.org/) |
+
+### Unit-тесты
+PostgreSQL и Docker не требуются.
 
 ```bash
-cd EventManagerTests
-dotnet test
+cd EventManager
+dotnet test ..\EventManagerTests\EventManager.UnitTests.csproj
+```
+
+### Integration-тесты
+Для запуска нужен **Docker** (Docker Desktop или Docker Engine): Testcontainers поднимает контейнер `postgres:16-alpine` на время прогона тестов. Локальный PostgreSQL для integration-тестов настраивать не нужно.
+
+```bash
+cd EventManager
+dotnet test ..\EventManager.IntegrationTests\EventManager.IntegrationTests.csproj
+```
+
+Запустить все тесты:
+
+```bash
+cd EventManager
+dotnet test EventManager.sln
 ```
 
 ## Swagger

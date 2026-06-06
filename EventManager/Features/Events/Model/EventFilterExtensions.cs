@@ -2,23 +2,23 @@
 
 public static class EventFilterExtensions
 {
-    public static IEnumerable<Event> ApplyFilter(this IEnumerable<Event> events, EventFilter filter)
+    public static IQueryable<Event> ApplyFilter(this IQueryable<Event> query, EventFilter filter)
     {
         if (!string.IsNullOrWhiteSpace(filter.Title))
         {
-            events = events.Where(e => e.Title.Contains(filter.Title, StringComparison.OrdinalIgnoreCase));
+            query = query.Where(e => e.Title.ToLower().Contains(filter.Title.ToLower()));
         }
 
         if (filter.From.HasValue)
         {
-            events = events.Where(e => e.StartAt >= filter.From.Value);
+            query = query.Where(e => e.StartAt >= filter.From.Value);
         }
 
         if (filter.To.HasValue)
         {
-            events = events.Where(e => e.EndAt <= filter.To.Value);
+            query = query.Where(e => e.EndAt <= filter.To.Value);
         }
 
-        return events;
+        return query;
     }
 }

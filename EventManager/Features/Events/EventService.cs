@@ -10,17 +10,10 @@ public class EventService(IEventRepository repository, IEventFilterValidator eve
     {
         eventFilterValidator.Validate(filter);
 
-        var data = await repository.GetAllAsync(ct);
-        var query = data.ApplyFilter(filter);
-
-        var totalItems = query.Count();
-
-        var items= query
-            .ApplyPagination(filter.Page, filter.PageSize)
-            .Select(e => e.ToDto())
-            .ToList();
+        var (data, totalItems) = await repository.GetPagedAsync(filter, ct);
 
         var totalPages = (int)Math.Ceiling(totalItems / (double)filter.PageSize);
+        var items = data.Select(e => e.ToDto()).ToList();
 
         return new PagedResponse<FullEventDto>(items, filter.Page, filter.PageSize, totalItems, totalPages);
     }

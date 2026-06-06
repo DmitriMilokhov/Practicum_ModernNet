@@ -137,8 +137,23 @@ public class EventRepositoryTests : IAsyncLifetime
         //Arrange
         await ResetDatabaseAsync();
 
-        await using var seedContext = CreateContext();
-        var testEvents = await SeedEventsAsync(seedContext);
+        await using var arrangeContext = CreateContext();
+        List<Event> testEvents =
+        [
+            new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
+            new Event("Holiday", "holiday", _baseTestStartDate.AddMonths(-4), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 3", "default", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 4", "default", _baseTestStartDate.AddDays(-5), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 5", "default", _baseTestStartDate.AddDays(-6), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 6", "default", _baseTestStartDate.AddDays(-7), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 7", "default", _baseTestStartDate.AddDays(-8), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 8", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 9", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate.AddYears(1), _baseTotalSeats),
+            new Event("WhatIsThis", "Not clear", _baseTestStartDate.AddMonths(-2), _baseTestEndDate.AddMonths(2), _baseTotalSeats),
+            new Event("LastEvent", "last", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
+        ];
+        await arrangeContext.Events.AddRangeAsync(testEvents);
+        await arrangeContext.SaveChangesAsync();
 
         var expectedTotalItems = testEvents.Count;
         var expectedPageItems = testEvents
@@ -171,8 +186,23 @@ public class EventRepositoryTests : IAsyncLifetime
         //Arrange
         await ResetDatabaseAsync();
 
-        await using var seedContext = CreateContext();
-        await SeedEventsAsync(seedContext);
+        await using var arrangeContext = CreateContext();
+        List<Event> testEvents =
+        [
+            new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
+            new Event("Holiday", "holiday", _baseTestStartDate.AddMonths(-4), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 3", "default", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 4", "default", _baseTestStartDate.AddDays(-5), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 5", "default", _baseTestStartDate.AddDays(-6), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 6", "default", _baseTestStartDate.AddDays(-7), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 7", "default", _baseTestStartDate.AddDays(-8), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 8", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 9", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate.AddYears(1), _baseTotalSeats),
+            new Event("WhatIsThis", "Not clear", _baseTestStartDate.AddMonths(-2), _baseTestEndDate.AddMonths(2), _baseTotalSeats),
+            new Event("LastEvent", "last", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
+        ];
+        await arrangeContext.Events.AddRangeAsync(testEvents);
+        await arrangeContext.SaveChangesAsync();
 
         await using var repositoryContext = CreateContext();
         var repository = new EventRepository(repositoryContext);
@@ -193,8 +223,23 @@ public class EventRepositoryTests : IAsyncLifetime
         //Arrange
         await ResetDatabaseAsync();
 
-        await using var seedContext = CreateContext();
-        await SeedEventsAsync(seedContext);
+        await using var arrangeContext = CreateContext();
+        List<Event> testEvents =
+        [
+            new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
+            new Event("Holiday", "holiday", _baseTestStartDate.AddMonths(-4), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 3", "default", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 4", "default", _baseTestStartDate.AddDays(-5), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 5", "default", _baseTestStartDate.AddDays(-6), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 6", "default", _baseTestStartDate.AddDays(-7), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 7", "default", _baseTestStartDate.AddDays(-8), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 8", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 9", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate.AddYears(1), _baseTotalSeats),
+            new Event("WhatIsThis", "Not clear", _baseTestStartDate.AddMonths(-2), _baseTestEndDate.AddMonths(2), _baseTotalSeats),
+            new Event("LastEvent", "last", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
+        ];
+        await arrangeContext.Events.AddRangeAsync(testEvents);
+        await arrangeContext.SaveChangesAsync();
 
         await using var repositoryContext = CreateContext();
         var repository = new EventRepository(repositoryContext);
@@ -216,8 +261,23 @@ public class EventRepositoryTests : IAsyncLifetime
         //Arrange
         await ResetDatabaseAsync();
 
-        await using var seedContext = CreateContext();
-        await SeedEventsAsync(seedContext);
+        await using var arrangeContext = CreateContext();
+        List<Event> testEvents =
+        [
+            new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
+            new Event("Holiday", "holiday", _baseTestStartDate.AddMonths(-4), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 3", "default", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 4", "default", _baseTestStartDate.AddDays(-5), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 5", "default", _baseTestStartDate.AddDays(-6), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 6", "default", _baseTestStartDate.AddDays(-7), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 7", "default", _baseTestStartDate.AddDays(-8), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 8", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 9", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate.AddYears(1), _baseTotalSeats),
+            new Event("WhatIsThis", "Not clear", _baseTestStartDate.AddMonths(-2), _baseTestEndDate.AddMonths(2), _baseTotalSeats),
+            new Event("LastEvent", "last", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
+        ];
+        await arrangeContext.Events.AddRangeAsync(testEvents);
+        await arrangeContext.SaveChangesAsync();
 
         await using var repositoryContext = CreateContext();
         var repository = new EventRepository(repositoryContext);
@@ -240,8 +300,23 @@ public class EventRepositoryTests : IAsyncLifetime
         //Arrange
         await ResetDatabaseAsync();
 
-        await using var seedContext = CreateContext();
-        await SeedEventsAsync(seedContext);
+        await using var arrangeContext = CreateContext();
+        List<Event> testEvents =
+        [
+            new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
+            new Event("Holiday", "holiday", _baseTestStartDate.AddMonths(-4), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 3", "default", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 4", "default", _baseTestStartDate.AddDays(-5), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 5", "default", _baseTestStartDate.AddDays(-6), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 6", "default", _baseTestStartDate.AddDays(-7), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 7", "default", _baseTestStartDate.AddDays(-8), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 8", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 9", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate.AddYears(1), _baseTotalSeats),
+            new Event("WhatIsThis", "Not clear", _baseTestStartDate.AddMonths(-2), _baseTestEndDate.AddMonths(2), _baseTotalSeats),
+            new Event("LastEvent", "last", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
+        ];
+        await arrangeContext.Events.AddRangeAsync(testEvents);
+        await arrangeContext.SaveChangesAsync();
 
         await using var repositoryContext = CreateContext();
         var repository = new EventRepository(repositoryContext);
@@ -274,8 +349,23 @@ public class EventRepositoryTests : IAsyncLifetime
         //Arrange
         await ResetDatabaseAsync();
 
-        await using var seedContext = CreateContext();
-        var testEvents = await SeedEventsAsync(seedContext);
+        await using var arrangeContext = CreateContext();
+        List<Event> testEvents =
+        [
+            new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
+            new Event("Holiday", "holiday", _baseTestStartDate.AddMonths(-4), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 3", "default", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 4", "default", _baseTestStartDate.AddDays(-5), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 5", "default", _baseTestStartDate.AddDays(-6), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 6", "default", _baseTestStartDate.AddDays(-7), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 7", "default", _baseTestStartDate.AddDays(-8), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 8", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 9", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate.AddYears(1), _baseTotalSeats),
+            new Event("WhatIsThis", "Not clear", _baseTestStartDate.AddMonths(-2), _baseTestEndDate.AddMonths(2), _baseTotalSeats),
+            new Event("LastEvent", "last", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
+        ];
+        await arrangeContext.Events.AddRangeAsync(testEvents);
+        await arrangeContext.SaveChangesAsync();
 
         await using var repositoryContext = CreateContext();
         var repository = new EventRepository(repositoryContext);
@@ -367,7 +457,15 @@ public class EventRepositoryTests : IAsyncLifetime
         await ResetDatabaseAsync();
 
         await using var arrangeContext = CreateContext();
-        await SeedEventsAsync(arrangeContext);
+        List<Event> testEvents =
+        [
+            new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
+            new Event("Holiday", "holiday", _baseTestStartDate.AddMonths(-4), _baseTestEndDate, _baseTotalSeats),
+            new Event("Event 3", "default", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats)
+        ];
+        await arrangeContext.Events.AddRangeAsync(testEvents);
+        await arrangeContext.SaveChangesAsync();
+
         var initialCount = await arrangeContext.Events.CountAsync();
         var eventToDelete = await arrangeContext.Events.FirstAsync();
 
@@ -439,26 +537,4 @@ public class EventRepositoryTests : IAsyncLifetime
     }
 
     #endregion
-
-    private async Task<List<Event>> SeedEventsAsync(AppDbContext dbContext)
-    {
-        List<Event> testEvents =
-        [
-            new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
-            new Event("Holiday", "holiday", _baseTestStartDate.AddMonths(-4), _baseTestEndDate, _baseTotalSeats),
-            new Event("Event 3", "default", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
-            new Event("Event 4", "default", _baseTestStartDate.AddDays(-5), _baseTestEndDate, _baseTotalSeats),
-            new Event("Event 5", "default", _baseTestStartDate.AddDays(-6), _baseTestEndDate, _baseTotalSeats),
-            new Event("Event 6", "default", _baseTestStartDate.AddDays(-7), _baseTestEndDate, _baseTotalSeats),
-            new Event("Event 7", "default", _baseTestStartDate.AddDays(-8), _baseTestEndDate, _baseTotalSeats),
-            new Event("Event 8", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate, _baseTotalSeats),
-            new Event("Event 9", "default", _baseTestStartDate.AddYears(-1), _baseTestEndDate.AddYears(1), _baseTotalSeats),
-            new Event("WhatIsThis", "Not clear", _baseTestStartDate.AddMonths(-2), _baseTestEndDate.AddMonths(2), _baseTotalSeats),
-            new Event("LastEvent", "last", _baseTestStartDate.AddDays(-4), _baseTestEndDate, _baseTotalSeats),
-        ];
-        await dbContext.Events.AddRangeAsync(testEvents);
-        await dbContext.SaveChangesAsync();
-
-        return testEvents;
-    }
 }

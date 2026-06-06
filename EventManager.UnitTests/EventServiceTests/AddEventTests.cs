@@ -4,7 +4,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel.DataAnnotations;
 
-namespace EventManagerTests.EventServiceTests;
+namespace EventManager.UnitTests.EventServiceTests;
 
 public class AddEventTests : EventServiceTestsBase
 {

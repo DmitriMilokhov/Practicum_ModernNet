@@ -6,9 +6,8 @@ using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 
-namespace EventManagerTests.BookingServiceTests;
+namespace EventManager.UnitTests.BookingServiceTests;
 
 public class RejectBookingAndReleaseEventTests : BookingServiceTestsBase
 {

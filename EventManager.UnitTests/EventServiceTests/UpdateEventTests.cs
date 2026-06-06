@@ -4,10 +4,9 @@ using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using System.ComponentModel.DataAnnotations;
 
-namespace EventManagerTests.EventServiceTests;
+namespace EventManager.UnitTests.EventServiceTests;
 
 public class UpdateEventTests : EventServiceTestsBase
 {
@@ -28,7 +27,15 @@ public class UpdateEventTests : EventServiceTestsBase
         var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
         var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await SeedEventsAsync(dbContext);
+        List<Event> testEvents =
+        [
+            new Event("First event", "test", BaseTestStartDate, BaseTestEndDate, BaseTotalSeats),
+            new Event("Holiday", "holiday", BaseTestStartDate.AddMonths(-4), BaseTestEndDate, BaseTotalSeats),
+            new Event("Event 3", "default", BaseTestStartDate.AddDays(-4), BaseTestEndDate, BaseTotalSeats)
+        ];
+
+        await dbContext.Events.AddRangeAsync(testEvents);
+        await dbContext.SaveChangesAsync();
 
         var eventToUpdate = dbContext.Events.First();
 

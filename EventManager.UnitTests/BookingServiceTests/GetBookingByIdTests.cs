@@ -5,7 +5,7 @@ using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EventManagerTests.BookingServiceTests;
+namespace EventManager.UnitTests.BookingServiceTests;
 
 public class GetBookingByIdTests : BookingServiceTestsBase
 {

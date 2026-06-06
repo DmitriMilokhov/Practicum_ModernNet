@@ -14,7 +14,7 @@ public class EventRepository(AppDbContext context) : IEventRepository
     {
         filter ??= new EventFilter();
 
-        var filteredEventsQuery = context.Events.ApplyFilter(filter);
+        var filteredEventsQuery = context.Events.AsNoTracking().ApplyFilter(filter);
         var totalCount = await filteredEventsQuery.CountAsync(cancellationToken: ct);
         var items = await filteredEventsQuery
             .OrderByDescending(e => e.StartAt)

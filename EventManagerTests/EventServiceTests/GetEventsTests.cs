@@ -29,6 +29,8 @@ public class GetEventsTests : EventServiceTestsBase
         
         var expectedTotalItems = TestEvents.Count;
         var expectedPageItems = TestEvents
+            .OrderByDescending(e => e.StartAt)
+            .ThenBy(e => e.Title)
             .Skip((filter.Page - 1) * filter.PageSize)
             .Take(filter.PageSize)
             .ToList();

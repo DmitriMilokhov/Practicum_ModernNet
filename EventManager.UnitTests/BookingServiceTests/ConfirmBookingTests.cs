@@ -5,19 +5,18 @@ using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 
-namespace EventManagerTests.BookingServiceTests;
+namespace EventManager.UnitTests.BookingServiceTests;
 
-public class RejectBookingTests : BookingServiceTestsBase
+public class ConfirmBookingTests : BookingServiceTestsBase
 {
     [Fact]
-    public async Task RejectBooking_Positive()
+    public async Task ConfirmBooking_Positive()
     {
         //Arrange
-        var notUpdatedBooking = BookingFactory.CreateBookingDto(Guid.NewGuid()).ToEntity();
+        var notUpdatedBooking  = BookingFactory.CreateBookingDto(Guid.NewGuid()).ToEntity();
         var booking = BookingFactory.CreateBookingDto(Guid.NewGuid()).ToEntity();
-
+       
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
@@ -26,7 +25,7 @@ public class RejectBookingTests : BookingServiceTestsBase
         //Act
         await dbContext.Bookings.AddAsync(booking);
         await dbContext.SaveChangesAsync();
-        await bookingService.RejectBooking(booking.Id);
+        await bookingService.ConfirmBooking(booking.Id);
 
         //Assert
         var updatedBooking = await bookingRepository.GetAsync(booking.Id);
@@ -34,12 +33,12 @@ public class RejectBookingTests : BookingServiceTestsBase
         notUpdatedBooking.Status.Should().Be(BookingStatus.Pending);
         notUpdatedBooking.ProcessedAt.Should().BeNull();
 
-        updatedBooking.Status.Should().Be(BookingStatus.Rejected);
+        updatedBooking.Status.Should().Be(BookingStatus.Confirmed);
         updatedBooking.ProcessedAt.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task RejectBooking_Negative()
+    public async Task ConfirmBooking_Negative()
     {
         //Arrange
         var randomGuid = Guid.NewGuid();
@@ -49,7 +48,7 @@ public class RejectBookingTests : BookingServiceTestsBase
         var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
 
         //Act
-        var action = async () => await bookingService.RejectBooking(randomGuid);
+        var action = async () => await bookingService.ConfirmBooking(randomGuid);
 
         //Assert
         await action.Should().ThrowAsync<EntityNotFoundException>().WithMessage(expectedExceptionMessage);

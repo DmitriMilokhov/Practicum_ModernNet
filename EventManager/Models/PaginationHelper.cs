@@ -9,8 +9,8 @@ public record PagedResponse<T>(
 
 public static class PaginationExtensions
 {
-    public static IEnumerable<T> ApplyPagination<T>(
-        this IEnumerable<T> query,
+    public static IQueryable<T> ApplyPagination<T>(
+        this IQueryable<T> query,
         int page,
         int pageSize)
     {

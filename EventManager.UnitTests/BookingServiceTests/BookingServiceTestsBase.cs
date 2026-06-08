@@ -7,7 +7,7 @@ using EventManager.Features.Events.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EventManagerTests.BookingServiceTests;
+namespace EventManager.UnitTests.BookingServiceTests;
 
 public abstract class BookingServiceTestsBase : IDisposable
 {

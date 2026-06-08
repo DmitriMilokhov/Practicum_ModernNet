@@ -2,15 +2,27 @@
 using EventManager.Features.Events.Interfaces;
 using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Exceptions;
+using EventManager.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventManager.Features.Events;
 
 public class EventRepository(AppDbContext context) : IEventRepository
 {
-    public async Task<IReadOnlyList<Event>> GetAllAsync(CancellationToken ct = default)
+    public async Task<(IReadOnlyList<Event>, int totalCount)> GetPagedAsync(
+        EventFilter? filter = null, CancellationToken ct = default)
     {
-        return await context.Events.AsNoTracking().ToListAsync(ct);
+        filter ??= new EventFilter();
+
+        var filteredEventsQuery = context.Events.AsNoTracking().ApplyFilter(filter);
+        var totalCount = await filteredEventsQuery.CountAsync(cancellationToken: ct);
+        var items = await filteredEventsQuery
+            .OrderByDescending(e => e.StartAt)
+            .ThenBy(e => e.Title)
+            .ApplyPagination(filter.Page, filter.PageSize)
+            .ToListAsync(ct);
+
+        return (items, totalCount);
     }
 
     public async Task<Event> GetAsync(Guid id, CancellationToken ct = default)

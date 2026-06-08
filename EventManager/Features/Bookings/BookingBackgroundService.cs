@@ -12,7 +12,6 @@ public class BookingBackgroundService(ILogger<BookingBackgroundService> logger,
     IServiceScopeFactory scopeFactory) : BackgroundService
 {
     private const int BookingProcessingTimeoutSec = 10;
-    private const int BookingStubDelaySec = 2;
     private const int ParallelismDegree = 4;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

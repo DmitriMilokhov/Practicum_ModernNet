@@ -5,7 +5,7 @@ using EventManager.Infrastructure.Exceptions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EventManagerTests.EventServiceTests;
+namespace EventManager.UnitTests.EventServiceTests;
 
 public class GetEventTests : EventServiceTestsBase
 {
@@ -16,9 +16,19 @@ public class GetEventTests : EventServiceTestsBase
         using var scope = CreateScope();
         var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await SeedEventsAsync(dbContext);
+        List<Event> testEvents =
+        [
+            new Event("First event", "test", BaseTestStartDate, BaseTestEndDate, BaseTotalSeats),
+            new Event("Holiday", "holiday", BaseTestStartDate.AddMonths(-4), BaseTestEndDate, BaseTotalSeats),
+            new Event("Event 9", "default", BaseTestStartDate.AddYears(-1), BaseTestStartDate.AddYears(1), BaseTotalSeats),
+            new Event("WhatIsThis", "Not clear", BaseTestStartDate.AddMonths(-2), BaseTestStartDate.AddMonths(2), BaseTotalSeats),
+            new Event("LastEvent", "last", BaseTestStartDate.AddDays(-4), BaseTestEndDate, BaseTotalSeats),
+        ];
 
-        var eventToFind = TestEvents.Last();
+        await dbContext.Events.AddRangeAsync(testEvents);
+        await dbContext.SaveChangesAsync();
+
+        var eventToFind = testEvents.Last();
 
         //Act
         var result = await eventService.GetEventAsync(eventToFind.Id);

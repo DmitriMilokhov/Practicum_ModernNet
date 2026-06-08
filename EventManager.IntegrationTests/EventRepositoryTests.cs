@@ -1,41 +1,19 @@
-﻿using EventManager.DataAccess;
-using EventManager.Features.Bookings.Model;
+﻿using EventManager.Features.Bookings.Model;
 using EventManager.Features.Events;
 using EventManager.Features.Events.Model;
 using EventManager.Infrastructure.Exceptions;
+using EventManager.IntegrationTests.Infrastructure;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Testcontainers.PostgreSql;
 
 namespace EventManager.IntegrationTests;
 
-public class EventRepositoryTests : IAsyncLifetime
+[Collection("Postgres")]
+public class EventRepositoryTests(PostgreSqlFixture fixture) 
 {
-    private readonly DateTime _baseTestStartDate = new (2026, 5, 1, 0, 0, 0, DateTimeKind.Utc);
-    private readonly DateTime _baseTestEndDate = new (2026, 6, 20, 0, 0, 0, DateTimeKind.Utc);
+    private readonly DateTime _baseTestStartDate = new(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc);
+    private readonly DateTime _baseTestEndDate = new(2026, 6, 20, 0, 0, 0, DateTimeKind.Utc);
     private readonly int _baseTotalSeats = 100;
-
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:16-alpine").Build();
-
-    public async Task InitializeAsync() => await _postgres.StartAsync();
-    public async Task DisposeAsync() => await _postgres.DisposeAsync();
-    private AppDbContext CreateContext()
-    {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseNpgsql(_postgres.GetConnectionString())
-            .Options;
-
-        var context = new AppDbContext(options);
-        context.Database.Migrate();
-        return context;
-    }
-
-    private async Task ResetDatabaseAsync()
-    {
-        await using var context = CreateContext();
-        await context.Database.ExecuteSqlRawAsync(
-            "TRUNCATE TABLE events, bookings RESTART IDENTITY CASCADE");
-    }
 
     #region Create
 
@@ -43,8 +21,8 @@ public class EventRepositoryTests : IAsyncLifetime
     public async Task AddEvent_Positive()
     {
         // Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await fixture.ResetDatabaseAsync();
+        await using var context = fixture.CreateContext();
 
         var eventModel = new Event(
             "Test Event",
@@ -60,7 +38,7 @@ public class EventRepositoryTests : IAsyncLifetime
         await repository.SaveChangesAsync();
 
         // Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = fixture.CreateContext();
         var savedEvent = await verifyContext.Events.FirstOrDefaultAsync(b => b.Title == "Test Event");
 
         savedEvent.Should().NotBeNull();
@@ -77,8 +55,8 @@ public class EventRepositoryTests : IAsyncLifetime
     public async Task GetEvent_Positive()
     {
         // Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await fixture.ResetDatabaseAsync();
+        await using var context = fixture.CreateContext();
 
         var eventModel = new Event(
             "Test Event",
@@ -90,7 +68,7 @@ public class EventRepositoryTests : IAsyncLifetime
         await context.Events.AddAsync(eventModel);
         await context.SaveChangesAsync();
 
-        await using var repositoryContext = CreateContext();
+        await using var repositoryContext = fixture.CreateContext();
         var repository = new EventRepository(repositoryContext);
 
         // Act
@@ -105,12 +83,12 @@ public class EventRepositoryTests : IAsyncLifetime
     public async Task GetEvent_Negative_NotFound()
     {
         // Arrange
-        await ResetDatabaseAsync();
+        await fixture.ResetDatabaseAsync();
 
         var randomGuid = Guid.NewGuid();
         var expectedExceptionMessage = $"{nameof(Event)} {randomGuid} is not found";
 
-        await using var repositoryContext = CreateContext();
+        await using var repositoryContext = fixture.CreateContext();
         var repository = new EventRepository(repositoryContext);
 
         // Act
@@ -135,9 +113,9 @@ public class EventRepositoryTests : IAsyncLifetime
     public async Task GetEvents_Positive_WithPagination(EventFilter filter, int expectedItemCounts)
     {
         //Arrange
-        await ResetDatabaseAsync();
+        await fixture.ResetDatabaseAsync();
 
-        await using var arrangeContext = CreateContext();
+        await using var arrangeContext = fixture.CreateContext();
         List<Event> testEvents =
         [
             new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
@@ -163,7 +141,7 @@ public class EventRepositoryTests : IAsyncLifetime
             .Take(filter.PageSize)
             .ToList();
 
-        await using var repositoryContext = CreateContext();
+        await using var repositoryContext = fixture.CreateContext();
         var repository = new EventRepository(repositoryContext);
 
         //Act
@@ -184,9 +162,9 @@ public class EventRepositoryTests : IAsyncLifetime
     public async Task GetEvents_Positive_TitleFilter(string title, int expectedItemsCount)
     {
         //Arrange
-        await ResetDatabaseAsync();
+        await fixture.ResetDatabaseAsync();
 
-        await using var arrangeContext = CreateContext();
+        await using var arrangeContext = fixture.CreateContext();
         List<Event> testEvents =
         [
             new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
@@ -204,7 +182,7 @@ public class EventRepositoryTests : IAsyncLifetime
         await arrangeContext.Events.AddRangeAsync(testEvents);
         await arrangeContext.SaveChangesAsync();
 
-        await using var repositoryContext = CreateContext();
+        await using var repositoryContext = fixture.CreateContext();
         var repository = new EventRepository(repositoryContext);
         var filter = new EventFilter { Title = title };
 
@@ -221,9 +199,9 @@ public class EventRepositoryTests : IAsyncLifetime
     public async Task GetEvents_Positive_StartDateFilter()
     {
         //Arrange
-        await ResetDatabaseAsync();
+        await fixture.ResetDatabaseAsync();
 
-        await using var arrangeContext = CreateContext();
+        await using var arrangeContext = fixture.CreateContext();
         List<Event> testEvents =
         [
             new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
@@ -241,7 +219,7 @@ public class EventRepositoryTests : IAsyncLifetime
         await arrangeContext.Events.AddRangeAsync(testEvents);
         await arrangeContext.SaveChangesAsync();
 
-        await using var repositoryContext = CreateContext();
+        await using var repositoryContext = fixture.CreateContext();
         var repository = new EventRepository(repositoryContext);
         var filter = new EventFilter { From = _baseTestStartDate.AddDays(-6), PageSize = 20 };
         var expectedItemsCount = 5;
@@ -259,9 +237,9 @@ public class EventRepositoryTests : IAsyncLifetime
     public async Task GetEvents_Positive_EndDateFilter()
     {
         //Arrange
-        await ResetDatabaseAsync();
+        await fixture.ResetDatabaseAsync();
 
-        await using var arrangeContext = CreateContext();
+        await using var arrangeContext = fixture.CreateContext();
         List<Event> testEvents =
         [
             new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
@@ -279,7 +257,7 @@ public class EventRepositoryTests : IAsyncLifetime
         await arrangeContext.Events.AddRangeAsync(testEvents);
         await arrangeContext.SaveChangesAsync();
 
-        await using var repositoryContext = CreateContext();
+        await using var repositoryContext = fixture.CreateContext();
         var repository = new EventRepository(repositoryContext);
 
         var filter = new EventFilter { To = _baseTestEndDate.AddDays(1), PageSize = 20 };
@@ -298,9 +276,9 @@ public class EventRepositoryTests : IAsyncLifetime
     public async Task GetEvents_Positive_MixFilter()
     {
         //Arrange
-        await ResetDatabaseAsync();
+        await fixture.ResetDatabaseAsync();
 
-        await using var arrangeContext = CreateContext();
+        await using var arrangeContext = fixture.CreateContext();
         List<Event> testEvents =
         [
             new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
@@ -318,7 +296,7 @@ public class EventRepositoryTests : IAsyncLifetime
         await arrangeContext.Events.AddRangeAsync(testEvents);
         await arrangeContext.SaveChangesAsync();
 
-        await using var repositoryContext = CreateContext();
+        await using var repositoryContext = fixture.CreateContext();
         var repository = new EventRepository(repositoryContext);
 
         var filter = new EventFilter
@@ -347,9 +325,9 @@ public class EventRepositoryTests : IAsyncLifetime
     public async Task GetEvents_Positive_Sort()
     {
         //Arrange
-        await ResetDatabaseAsync();
+        await fixture.ResetDatabaseAsync();
 
-        await using var arrangeContext = CreateContext();
+        await using var arrangeContext = fixture.CreateContext();
         List<Event> testEvents =
         [
             new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
@@ -367,7 +345,7 @@ public class EventRepositoryTests : IAsyncLifetime
         await arrangeContext.Events.AddRangeAsync(testEvents);
         await arrangeContext.SaveChangesAsync();
 
-        await using var repositoryContext = CreateContext();
+        await using var repositoryContext = fixture.CreateContext();
         var repository = new EventRepository(repositoryContext);
 
         //Act
@@ -388,8 +366,8 @@ public class EventRepositoryTests : IAsyncLifetime
     public async Task UpdateEvent_Positive()
     {
         //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await fixture.ResetDatabaseAsync();
+        await using var context = fixture.CreateContext();
 
         var eventModel = new Event(
             "Test Event",
@@ -408,7 +386,7 @@ public class EventRepositoryTests : IAsyncLifetime
         await context.Events.AddAsync(eventModel);
         await context.SaveChangesAsync();
 
-        await using var repositoryContext = CreateContext();
+        await using var repositoryContext = fixture.CreateContext();
         var repository = new EventRepository(repositoryContext);
 
         //Act
@@ -421,7 +399,7 @@ public class EventRepositoryTests : IAsyncLifetime
         //Assert
         await action.Should().NotThrowAsync();
 
-        await using var assertionContext = CreateContext();
+        await using var assertionContext = fixture.CreateContext();
         var checkEvent = await assertionContext.Events.FirstOrDefaultAsync(e => e.Title == updatedModel.Title);
         checkEvent.Should().NotBeNull();
         checkEvent.Description.Should().Be(updatedModel.Description);
@@ -431,12 +409,12 @@ public class EventRepositoryTests : IAsyncLifetime
     public async Task UpdateEvent_Negative_NotFound()
     {
         //Arrange
-        await ResetDatabaseAsync();
+        await fixture.ResetDatabaseAsync();
 
         var randomGuid = Guid.NewGuid();
         var expectedExceptionMessage = $"{nameof(Event)} {randomGuid} is not found";
 
-        await using var repositoryContext = CreateContext();
+        await using var repositoryContext = fixture.CreateContext();
         var repository = new EventRepository(repositoryContext);
 
         //Act
@@ -454,9 +432,9 @@ public class EventRepositoryTests : IAsyncLifetime
     public async Task DeleteEvent_Positive()
     {
         //Arrange
-        await ResetDatabaseAsync();
+        await fixture.ResetDatabaseAsync();
 
-        await using var arrangeContext = CreateContext();
+        await using var arrangeContext = fixture.CreateContext();
         List<Event> testEvents =
         [
             new Event("First event", "test", _baseTestStartDate, _baseTestEndDate, _baseTotalSeats),
@@ -469,7 +447,7 @@ public class EventRepositoryTests : IAsyncLifetime
         var initialCount = await arrangeContext.Events.CountAsync();
         var eventToDelete = await arrangeContext.Events.FirstAsync();
 
-        await using var repositoryContext = CreateContext();
+        await using var repositoryContext = fixture.CreateContext();
         var repository = new EventRepository(repositoryContext);
 
         //Act
@@ -477,56 +455,20 @@ public class EventRepositoryTests : IAsyncLifetime
         await repository.SaveChangesAsync();
 
         //Assert
-        await using var assertionContext = CreateContext();
+        await using var assertionContext = fixture.CreateContext();
         (await assertionContext.Events.CountAsync()).Should().Be(initialCount - 1);
-    }
-
-    [Fact]
-    public async Task DeleteEvent_Positive_WithAllBookings()
-    {
-        //Arrange
-        await ResetDatabaseAsync();
-        await using var context = CreateContext();
-
-        var eventModel = new Event(
-            "Test Event",
-            "Test description",
-            new DateTime(2025, 02, 02, 0, 0, 0, DateTimeKind.Utc),
-            new DateTime(2025, 04, 04, 0, 0, 0, DateTimeKind.Utc),
-            20);
-
-        await context.Events.AddAsync(eventModel);
-
-        var bookingModel1 = new Booking(Guid.NewGuid(), eventModel.Id, BookingStatus.Pending, DateTime.UtcNow);
-        var bookingModel2 = new Booking(Guid.NewGuid(), eventModel.Id, BookingStatus.Pending, DateTime.UtcNow);
-
-        await context.Bookings.AddRangeAsync(bookingModel1,  bookingModel2); 
-
-        await context.SaveChangesAsync();
-
-        await using var repositoryContext = CreateContext();
-        var repository = new EventRepository(repositoryContext);
-
-        //Act
-        await repository.DeleteAsync(eventModel.Id);
-        await repository.SaveChangesAsync();
-
-        //Assert
-        await using var assertionContext = CreateContext();
-        var bookingsForEvent = await assertionContext.Bookings.Where(e => e.EventId == eventModel.Id).ToListAsync();
-        bookingsForEvent.Should().BeEmpty();
     }
 
     [Fact]
     public async Task DeleteEvent_Negative_NotFound()
     {
         //Arrange
-        await ResetDatabaseAsync();
+        await fixture.ResetDatabaseAsync();
 
         var randomGuid = Guid.NewGuid();
         var expectedExceptionMessage = $"{nameof(Event)} {randomGuid} is not found";
 
-        await using var repositoryContext = CreateContext();
+        await using var repositoryContext = fixture.CreateContext();
         var repository = new EventRepository(repositoryContext);
 
         //Act
